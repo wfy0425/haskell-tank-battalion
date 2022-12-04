@@ -1,76 +1,96 @@
-module View (view) where
+{-# LANGUAGE OverloadedStrings #-}
+module View where
+
+-- import Control.Monad (forever, void)
+-- import Control.Monad.IO.Class (liftIO)
+-- import Control.Concurrent (threadDelay, forkIO)
+-- import Data.Maybe (fromMaybe)
+
+import Tank
 
 import Brick
-import Brick.Widgets.Center (center)
-import Brick.Widgets.Border (borderWithLabel, hBorder, vBorder)
-import Brick.Widgets.Border.Style (unicode)
-import Text.Printf (printf)
+  ( App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
+  , customMain, neverShowCursor
+  , continue, halt
+  , hLimit, vLimit, vBox, hBox
+  , padRight, padLeft, padTop, padAll, Padding(..)
+  , withBorderStyle
+  , str
+  , attrMap, withAttr, emptyWidget, AttrName, on, fg
+  , (<+>)
+  )
+import Brick.BChan (newBChan, writeBChan)
+import qualified Brick.Widgets.Border as B
+import qualified Brick.Widgets.Border.Style as BS
+import qualified Brick.Widgets.Center as C
+-- import Control.Lens ((^.))
+import qualified Graphics.Vty as V
+import Data.Sequence (Seq)
+import qualified Data.Sequence as S
+import Linear.V2 (V2(..))
 
-import Model
-import Model.Board
-import Graphics.Vty hiding (dim)
+-- Types
 
--------------------------------------------------------------------------------
-view :: PlayState -> [Widget String]
--------------------------------------------------------------------------------
-view s = [view' s]
+-- | Ticks mark passing of time
 
-view' :: PlayState -> Widget String
-view' s = 
-  withBorderStyle unicode $
-    borderWithLabel (str (header s)) $
-      vTile [ mkRow s row | row <- [1..dim] ]
+-- This is our custom event that will be constantly fed into the app.
+data Tick = Tick
 
-header :: PlayState -> String
-header s = printf "Tic-Tac-Toe Turn = %s, row = %d, col = %d" (show (psTurn s)) (pRow p) (pCol p)
-  where 
-    p    = psPos s
+-- | Named resources
+--
+-- Not currently used, but will be easier to refactor
+-- if we call this "Name" now.
+type Name = ()
 
-mkRow :: PlayState -> Int -> Widget n
-mkRow s row = hTile [ mkCell s row i | i <- [1..dim] ]
+data Cell = Tank | Empty
 
-mkCell :: PlayState -> Int -> Int -> Widget n
-mkCell s r c 
-  | isCurr s r c = withCursor raw 
-  | otherwise    = raw 
+-- App definition
+
+app :: App Game Tick Name
+app = App { appDraw = drawUI
+          -- , appChooseCursor = neverShowCursor
+          -- , appHandleEvent = handleEvent
+          -- , appStartEvent = return
+          , appAttrMap = const theMap
+          }
+
+main :: IO ()
+main = do
+  g <- initGame
+
+
+-- Drawing
+
+drawUI :: Game -> [Widget Name]
+drawUI g =
+  [ C.center $ drawGrid g ]
+
+drawGrid :: Game -> Widget Name
+drawGrid g = withBorderStyle BS.unicodeBold
+  $ B.borderWithLabel (str "Tank")
+  $ vBox rows
   where
-    raw = mkCell' s r c
+    rows         = [hBox $ cellsInRow r | r <- [height-1,height-2..0]]
+    cellsInRow y = [drawCoord (V2 x y) | x <- [0..width-1]]
+    drawCoord    = drawCell . cellAt
+    cellAt c
+      | c == g ^. tank      = Tank
+      | otherwise           = Empty
 
-withCursor :: Widget n -> Widget n
-withCursor = modifyDefAttr (`withStyle` reverseVideo)
+drawCell :: Cell -> Widget Name
+-- drawCell Snake = withAttr snakeAttr cw
+drawCell Tank  = withAttr tankAttr cw
+drawCell Empty = withAttr emptyAttr cw
 
-mkCell' :: PlayState -> Int -> Int -> Widget n
--- mkCell' _ r c = center (str (printf "(%d, %d)" r c))
-mkCell' s r c = center (mkXO xoMb)
-  where 
-    xoMb      = psBoard s ! Pos r c
-    -- xoMb 
-    --   | r == c    = Just X 
-    --   | r > c     = Just O 
-    --   | otherwise = Nothing
+cw :: Widget Name
+cw = str "  "
 
-mkXO :: Maybe XO -> Widget n
-mkXO Nothing  = blockB
-mkXO (Just X) = blockX
-mkXO (Just O) = blockO
+theMap :: AttrMap
+theMap = attrMap V.defAttr
+  [ (tankAttr, V.red `on` V.red)
+  ]
 
-blockB, blockX, blockO :: Widget n
-blockB = vBox (replicate 5 (str "     "))
-blockX = vBox [ str "X   X"
-              , str " X X "
-              , str "  X  "
-              , str " X X " 
-              , str "X   X"]
-blockO = vBox [ str "OOOOO"
-              , str "O   O"
-              , str "O   O"
-              , str "O   O"
-              , str "OOOOO"]
-
-vTile :: [Widget n] -> Widget n
-vTile (b:bs) = vBox (b : [hBorder <=> b | b <- bs])
-vTile _      = emptyWidget
-
-hTile :: [Widget n] -> Widget n
-hTile (b:bs) = hBox (b : [vBorder <+> b | b <- bs])
-hTile _      = emptyWidget
+tankAttr, emptyAttr :: AttrName
+-- snakeAttr = "snakeAttr"
+tankAttr = "tankAttr"
+emptyAttr = "emptyAttr"
