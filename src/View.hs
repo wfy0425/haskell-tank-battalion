@@ -60,7 +60,8 @@ handleEvent g _                                     = continue g
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True)
+  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True),
+    drawCell Wall
   ]
 
 drawGrid :: Game -> Widget Name
@@ -106,11 +107,23 @@ emptyAttr = "emptyAttr"
 
 
 drawStats :: Game -> Bool -> Widget Name
-drawStats g True = hLimit 11
+drawStats g True = hLimit 20
   $ vBox [ padTop (Pad 2) $ drawCell Tank
           ,str $ "Lives: " ++ show (g ^. tank ^. tankHealth)
+          , drawInstructions True
           ]
-drawStats g False = hLimit 11
+drawStats g False = hLimit 20
   $ vBox [padTop (Pad 2) $ drawCell Enemy
           ,str $ "Lives: " ++ show (g ^. enemy ^. tankHealth)
+          , drawInstructions False
   ]
+
+drawInstructions :: Bool -> Widget Name
+drawInstructions True = padAll 1
+  $ vBox [  str "↑: up" , str "↓: down" , str"←: left", str"→: right"
+            ,str "K: shoot"
+         ]
+drawInstructions False = padAll 1
+  $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right"
+            ,str "space: shoot"
+         ]
