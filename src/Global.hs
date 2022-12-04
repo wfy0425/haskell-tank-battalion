@@ -4,10 +4,14 @@
 
 module Global (
     Tick(..)
+    , Direction(..)
+    , Coord
     , Name
     , height
     , width
 ) where
+
+import Linear.V2 (V2(..), _x, _y)
 
 -- -- Constants
 
@@ -25,3 +29,12 @@ data Tick = Tick
 -- Not currently used, but will be easier to refactor
 -- if we call this "Name" now.
 type Name = ()
+
+data Direction
+  = North
+  | South
+  | East
+  | West
+  deriving (Eq, Show)
+
+type Coord = V2 Int

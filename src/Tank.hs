@@ -5,7 +5,7 @@ module Tank
   ( Game(..)
   , Direction(..)
   , initTank
-  , height, width, tank, moveTank, moveEnemy, tankCoord, enemy, 
+  , tank, moveTank, moveEnemy, tankCoord, enemy
   ) where
 
 import Control.Applicative ((<|>))
@@ -34,22 +34,12 @@ data Game = Game
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   } deriving (Show)
 
-type Coord = V2 Int
-
 initTank :: Int -> Int -> Tank
 initTank xm ym = Tank {
             _tankCoord = V2 xm ym
               , _tankDirection = North
               , _tankHealth = 100
             } 
-
-
-data Direction
-  = North
-  | South
-  | East
-  | West
-  deriving (Eq, Show)
 
 
 data Tank = Tank {
@@ -68,7 +58,6 @@ data Bullet = Bullet {
 
 makeLenses ''Game
 makeLenses ''Tank
-makeLenses ''Bullet
 
 
 -- Functions
