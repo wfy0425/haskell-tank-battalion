@@ -17,7 +17,7 @@ import Linear.V2 (V2(..), _x, _y)
 
 height, width :: Int
 height = 20
-width = 40
+width = 20
 
 -- | Ticks mark passing of time
 

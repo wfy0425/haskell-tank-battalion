@@ -32,7 +32,7 @@ import Global
 
 -- Types
 
-data Cell = Tank | Enemy | Wall | Empty 
+data Cell = Tank | Enemy | Wall | Stone | Empty 
 
 
 -- Handling events
@@ -60,7 +60,9 @@ handleEvent g _                                     = continue g
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [ C.center $ drawGrid g ]
+  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True),
+    drawCell Wall
+  ]
 
 drawGrid :: Game -> Widget Name
 drawGrid g = withBorderStyle BS.unicodeBold
@@ -73,7 +75,8 @@ drawGrid g = withBorderStyle BS.unicodeBold
     cellAt c
       | c == g ^. tank ^. tankCoord  = Tank
       | c == g ^. enemy ^. tankCoord  = Enemy
-      | c `elem` (g ^. walls)  = Wall
+      | c `elem` g ^. walls = Wall
+      | c `elem` g ^. stones = Stone
       | otherwise           = Empty
 
 drawCell :: Cell -> Widget Name
@@ -82,6 +85,8 @@ drawCell Tank  = withAttr tankAttr cw
 drawCell Enemy  = withAttr enemyAttr cw
 drawCell Wall  = withAttr wallAttr cw
 drawCell Empty = withAttr emptyAttr cw
+drawCell Wall = withAttr wallAttr cw
+drawCell Stone = withAttr stoneAttr cw
 
 cw :: Widget Name
 cw = str "  "
@@ -90,11 +95,58 @@ theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (tankAttr, V.red `on` V.red), 
    (enemyAttr, V.blue `on` V.blue),
-   (wallAttr, V.brightYellow `on` V.brightYellow)
+   (wallAttr, V.white `on` V.white),
+   (stoneAttr, V.brightYellow `on` V.brightYellow)
+  --  (gameOverAttr, V.white `V.withStyle` V.bold)
   ]
 
 tankAttr, emptyAttr :: AttrName
 tankAttr = "tankAttr"
 enemyAttr = "enemyAttr"
 wallAttr = "wallAttr"
+stoneAttr = "stoneAttr"
 emptyAttr = "emptyAttr"
+
+gameOverAttr :: AttrName
+gameOverAttr = "gameOver"
+
+drawStats :: Game -> Bool -> Widget Name
+drawStats g True = hLimit 20
+  $ vBox [ padTop (Pad 2) $ drawCell Tank
+          ,str $ "Lives: " ++ show (g ^. tank ^. tankHealth)
+          , drawInstructions True
+          , drawGameOver g
+          ]
+drawStats g False = hLimit 20
+  $ vBox [padTop (Pad 2) $ drawCell Enemy
+          ,str $ "Lives: " ++ show (g ^. enemy ^. tankHealth)
+          , drawInstructions False
+           , drawGameOver g
+  ]
+
+drawInstructions :: Bool -> Widget Name
+drawInstructions True = padAll 1
+  $ vBox [  str "↑: up" , str "↓: down" , str"←: left", str"→: right"
+            ,str "K: shoot"
+         ]
+drawInstructions False = padAll 1
+  $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right"
+            ,str "space: shoot"
+         ]
+
+drawGameOver :: Game -> Widget Name
+drawGameOver g =
+  if (isGameWon g)
+    then padAll 1
+      $ vBox [  drawCell Tank, str "Won!"
+              -- , str "r:restart"
+              , str "q:quit"
+              ]
+    else if (isGameLost g)
+        then padAll 1
+          $ vBox [  drawCell Enemy, str "Won!"
+            -- , str "r:restart"
+            , str "q:quit"
+            ]
+        else emptyWidget
+          
