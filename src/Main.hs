@@ -9,12 +9,14 @@ import qualified Graphics.Vty as V
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((.~), (&))
 import Brick
+import Brick.BChan (newBChan, writeBChan)
+
 import Tank
 import View
 import Global
-import Brick.BChan (newBChan, writeBChan)
+import Game
+import Hitable
 
--- type Name = ()
 
 -- App definition
 

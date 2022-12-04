@@ -4,6 +4,8 @@
 
 module Bullet (
     Bullet(..)
+    ,bulletCoord, bulletDirection
+    ,initBullet
 ) where
 
 import Global
@@ -16,6 +18,9 @@ data Bullet = Bullet {
 } deriving (Show)
 
 makeLenses ''Bullet
+
+initBullet :: Coord -> Direction -> Bullet 
+initBullet c d = Bullet { _bulletCoord = c, _bulletDirection = d }
 
 -- todo: bulletFly
 -- todo: hit
