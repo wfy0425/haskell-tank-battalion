@@ -4,10 +4,9 @@
 module Tank
   ( Game(..)
   , Direction(..)
-  , initTank
-  , weakWalls
+  , initTank, initWalls, initStones
   , height, width, tank, moveTank, moveEnemy, tankCoord, enemy
-  , walls
+  , walls, stones
   ) where
 
 import Control.Applicative ((<|>))
@@ -34,6 +33,7 @@ data Game = Game
     _tank   :: Tank        -- ^ obj of the tank
   , _enemy  :: Tank       -- ^ obj of the enemy
   , _walls  :: [Wall]       -- ^ location of the walls
+  , _stones :: [Stone]      -- ^ location of the stones
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   } deriving (Show)
 
@@ -44,14 +44,8 @@ initTank xm ym = Tank {
               , _tankHealth = 100
             } 
 
--- initWall :: Coord -> Bool -> Wall
--- initWall c isWeak = Wall {
---             _wallCoord = c
---               , _isWeak = isWeak
---             }
-
-weakWalls :: [Wall]
-weakWalls = do
+initWalls :: [Wall]
+initWalls = do
   let aTop = height - 2
   let aBottom = height - 9
   let aRight = 15
@@ -63,8 +57,23 @@ weakWalls = do
   let collectionA = [V2 x y | x <- [aLeft..aRight], y <- [aBottom..aTop]] \\ [V2 x y | x <- [aLeft+1..aRight-1], y <- [aBottom+1..aTop-1]]
   let collectionB = [V2 x y | x <- [bLeft..bRight], y <- [bBottom..bTop]] \\ [V2 x y | x <- [bLeft+1..bRight-1], y <- [bBottom+1..bTop-1]]
   let positions = collectionA ++ collectionB
-  -- let collectionA = [initWall c True| c <- positions]
   positions
+
+initStones :: [Stone]
+initStones = do
+  let aTop = height - 4
+  let aBottom = height - 6
+  let aRight = 8
+  let aLeft = 7
+  let bTop = height - aBottom - 1
+  let bBottom = height - aTop - 1
+  let bLeft = width - aRight - 1
+  let bRight = width - aLeft - 1
+  let collectionA = [V2 x y | x <- [aLeft..aRight], y <- [aBottom..aTop]] \\ [V2 x y | x <- [aLeft+1..aRight-1], y <- [aBottom+1..aTop-1]]
+  let collectionB = [V2 x y | x <- [bLeft..bRight], y <- [bBottom..bTop]] \\ [V2 x y | x <- [bLeft+1..bRight-1], y <- [bBottom+1..bTop-1]]
+  let positions = collectionA ++ collectionB
+  positions
+
 
 data Tank = Tank {
   _tankCoord :: Coord
@@ -74,6 +83,7 @@ data Tank = Tank {
 
 
 type Wall = Coord
+type Stone = Coord
 
 data Bullet = Bullet {
   _bulletCoord :: Coord
