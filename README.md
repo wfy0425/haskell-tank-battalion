@@ -30,3 +30,4 @@ The player will lose under these two circumstances:
 
 ## Architecture
 This project aims to build a Haskell version of the Tank Battalion. The terminal user interface would be implemented using the brick library.
+![UML](http://assets.processon.com/chart_image/638ce1cd7d9c082abaa044b7.png)
