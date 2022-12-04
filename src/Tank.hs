@@ -36,14 +36,12 @@ data Game = Game
 
 type Coord = V2 Int
 
-initTank :: Tank
-initTank = Tank {
+initTank :: Int -> Int -> Tank
+initTank xm ym = Tank {
             _tankCoord = V2 xm ym
               , _tankDirection = North
               , _tankHealth = 100
-            } where
-                xm = width `div` 2
-                ym = height `div` 2
+            } 
 
 
 data Direction
@@ -81,17 +79,17 @@ moveTank d g = g & tank . tankCoord %~ moveCoord d
   where
     moveCoord :: Direction -> Coord -> Coord
     moveCoord d c = case d of
-      North    -> c & _y %~ (\y -> if y == 0 then height - 1 else y - 1)
-      South  -> c & _y %~ (\y -> if y == height - 1 then 0 else y + 1)
-      West  -> c & _x %~ (\x -> if x == 0 then width - 1 else x - 1)
-      East -> c & _x %~ (\x -> if x == width - 1 then 0 else x + 1)
+      North    -> c & _y %~ (\y -> if y == height - 1 then y else y + 1)
+      South  -> c & _y %~ (\y -> if y == 0 then y else y - 1)
+      West  -> c & _x %~ (\x -> if x == 0 then x else x - 1)
+      East -> c & _x %~ (\x -> if x == width - 1 then x else x + 1)
 
 moveEnemy :: Direction -> Game -> Game
 moveEnemy d g = g & enemy . tankCoord %~ moveCoord d
   where
     moveCoord :: Direction -> Coord -> Coord
     moveCoord d c = case d of
-      North    -> c & _y %~ (\y -> if y == 0 then height - 1 else y - 1)
-      South  -> c & _y %~ (\y -> if y == height - 1 then 0 else y + 1)
-      West  -> c & _x %~ (\x -> if x == 0 then width - 1 else x - 1)
-      East -> c & _x %~ (\x -> if x == width - 1 then 0 else x + 1)
+      North    -> c & _y %~ (\y -> if y == height - 1 then y else y + 1)
+      South  -> c & _y %~ (\y -> if y == 0 then y else y - 1)
+      West  -> c & _x %~ (\x -> if x == 0 then x else x - 1)
+      East -> c & _x %~ (\x -> if x == width - 1 then x else x + 1)

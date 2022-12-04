@@ -13,7 +13,7 @@ module Global (
 
 height, width :: Int
 height = 20
-width = 20
+width = 40
 
 -- | Ticks mark passing of time
 
