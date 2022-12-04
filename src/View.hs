@@ -60,7 +60,8 @@ handleEvent g _                                     = continue g
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [ C.center $ drawGrid g ]
+  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True)
+  ]
 
 drawGrid :: Game -> Widget Name
 drawGrid g = withBorderStyle BS.unicodeBold
@@ -102,3 +103,14 @@ enemyAttr = "enemyAttr"
 wallAttr = "wallAttr"
 stoneAttr = "stoneAttr"
 emptyAttr = "emptyAttr"
+
+
+drawStats :: Game -> Bool -> Widget Name
+drawStats g True = hLimit 11
+  $ vBox [ padTop (Pad 2) $ drawCell Tank
+          ,str $ "Lives: " ++ show (g ^. tank ^. tankHealth)
+          ]
+drawStats g False = hLimit 11
+  $ vBox [padTop (Pad 2) $ drawCell Enemy
+          ,str $ "Lives: " ++ show (g ^. enemy ^. tankHealth)
+  ]
