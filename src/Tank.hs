@@ -37,8 +37,6 @@ data Game = Game
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   } deriving (Show)
 
-type Coord = V2 Int
-
 initTank :: Int -> Int -> Tank
 initTank xm ym = Tank {
             _tankCoord = V2 xm ym
@@ -63,12 +61,15 @@ weakWalls = do
   positions
 
 
-data Direction
-  = North
-  | South
-  | East
-  | West
-  deriving (Eq, Show)
+weakWalls :: [Wall]
+weakWalls = do
+  let wallTop = height - 2
+  let wallBottom = height - 9
+  let wallRight = 15
+  let wallLeft = 5
+  let positions = [V2 x y | x <- [wallLeft..wallRight], y <- [wallBottom..wallTop]] \\ [V2 x y | x <- [wallLeft+1..wallRight-1], y <- [wallBottom+1..wallTop-1]]
+  -- let collectionA = [initWall c True| c <- positions]
+  positions
 
 
 data Tank = Tank {
@@ -87,7 +88,6 @@ data Bullet = Bullet {
 
 makeLenses ''Game
 makeLenses ''Tank
-makeLenses ''Bullet
 
 
 -- Functions
