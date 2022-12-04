@@ -4,6 +4,7 @@
 
 module Global (
     Tick(..)
+    , Role(..)
     , Direction(..)
     , Coord
     , Name
@@ -38,3 +39,5 @@ data Direction
   deriving (Eq, Show)
 
 type Coord = V2 Int
+
+data Role = SelfRole | EnemyRole
