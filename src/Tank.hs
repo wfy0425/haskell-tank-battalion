@@ -60,18 +60,6 @@ weakWalls = do
   -- let collectionA = [initWall c True| c <- positions]
   positions
 
-
-weakWalls :: [Wall]
-weakWalls = do
-  let wallTop = height - 2
-  let wallBottom = height - 9
-  let wallRight = 15
-  let wallLeft = 5
-  let positions = [V2 x y | x <- [wallLeft..wallRight], y <- [wallBottom..wallTop]] \\ [V2 x y | x <- [wallLeft+1..wallRight-1], y <- [wallBottom+1..wallTop-1]]
-  -- let collectionA = [initWall c True| c <- positions]
-  positions
-
-
 data Tank = Tank {
   _tankCoord :: Coord
   , _tankDirection :: Direction
