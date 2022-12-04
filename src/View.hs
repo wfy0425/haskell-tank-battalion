@@ -73,12 +73,14 @@ drawGrid g = withBorderStyle BS.unicodeBold
     cellAt c
       | c == g ^. tank ^. tankCoord  = Tank
       | c == g ^. enemy ^. tankCoord  = Enemy
+      | c `elem` (g ^. walls)  = Wall
       | otherwise           = Empty
 
 drawCell :: Cell -> Widget Name
 -- drawCell Snake = withAttr snakeAttr cw
 drawCell Tank  = withAttr tankAttr cw
 drawCell Enemy  = withAttr enemyAttr cw
+drawCell Wall  = withAttr wallAttr cw
 drawCell Empty = withAttr emptyAttr cw
 
 cw :: Widget Name

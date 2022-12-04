@@ -5,7 +5,7 @@ module Tank
   ( Game(..)
   , Direction(..)
   , initTank
-  , tank, moveTank, moveEnemy, tankCoord, enemy
+  , tank, moveTank, moveEnemy, tankCoord, enemy, walls
   ) where
 
 import Control.Applicative ((<|>))

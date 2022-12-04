@@ -6,6 +6,7 @@ import Control.Monad (forever, void)
 import Control.Concurrent (threadDelay, forkIO)
 
 import qualified Graphics.Vty as V
+import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((.~), (&))
 import Brick
 import Tank
@@ -31,7 +32,7 @@ initGame :: Game
 initGame = Game {
               _tank  = initTank (width - 3) 2
               , _enemy = initTank 2 (height-3)
-              , _walls = []
+              , _walls = [(V2 5 6), (V2 6 7)]
               , _bullets = []
             }
 
