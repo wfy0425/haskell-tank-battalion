@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module View where
 
--- import Control.Monad (forever, void)
--- import Control.Monad.IO.Class (liftIO)
--- import Control.Concurrent (threadDelay, forkIO)
--- import Data.Maybe (fromMaybe)
+import Control.Monad (forever, void)
+import Control.Monad.IO.Class (liftIO)
+import Control.Concurrent (threadDelay, forkIO)
+import Data.Maybe (fromMaybe)
 
 import Tank
 
@@ -23,7 +23,7 @@ import Brick.BChan (newBChan, writeBChan)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
--- import Control.Lens ((^.))
+import Control.Lens ((^.))
 import qualified Graphics.Vty as V
 import Data.Sequence (Seq)
 import qualified Data.Sequence as S
@@ -48,16 +48,43 @@ data Cell = Tank | Empty
 
 app :: App Game Tick Name
 app = App { appDraw = drawUI
-          -- , appChooseCursor = neverShowCursor
-          -- , appHandleEvent = handleEvent
-          -- , appStartEvent = return
+          , appChooseCursor = neverShowCursor
+          , appHandleEvent = handleEvent
+          , appStartEvent = return
           , appAttrMap = const theMap
           }
 
 main :: IO ()
 main = do
+  chan <- newBChan 10
+  forkIO $ forever $ do
+    writeBChan chan Tick
+    threadDelay 100000 -- decides how fast your game moves
   g <- initGame
+  let builder = V.mkVty V.defaultConfig
+  initialVty <- builder
+  void $ customMain initialVty builder (Just chan) app g
 
+-- Handling events
+
+handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
+-- handleEvent g (AppEvent Tick)                       = continue $ step g
+handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ moveTank North g 
+handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue $ moveTank South g
+handleEvent g (VtyEvent (V.EvKey V.KRight []))      = continue $ moveTank East g
+handleEvent g (VtyEvent (V.EvKey V.KLeft []))       = continue $ moveTank West g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))         = continue $ moveEnemy North g 
+handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveEnemy South g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))      = continue $ moveEnemy East g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveEnemy West g
+-- handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') [])) = continue $ turn North g
+-- handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') [])) = continue $ turn South g
+-- handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') [])) = continue $ turn East g
+-- handleEvent g (VtyEvent (V.EvKey (V.KChar 'h') [])) = continue $ turn West g
+-- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
+handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = halt g
+handleEvent g _                                     = continue g
 
 -- Drawing
 
@@ -91,6 +118,5 @@ theMap = attrMap V.defAttr
   ]
 
 tankAttr, emptyAttr :: AttrName
--- snakeAttr = "snakeAttr"
 tankAttr = "tankAttr"
 emptyAttr = "emptyAttr"
