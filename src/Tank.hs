@@ -65,24 +65,22 @@ makeLenses ''Bullet
 
 height, width :: Int
 height = 20
-width = 20
+width = 40
 
 -- Functions
 
 -- | Initialize a paused game with random food location
 initGame :: IO Game
 initGame = do
-  let xm = width `div` 2
-      ym = height `div` 2
-      g  = Game
+  let g  = Game
         {  
           _tank  = Tank{
-            _tankCoord = V2 xm ym
+            _tankCoord = V2 (width - 2) 2
             , _tankDirection = North
             , _tankHealth = 100
           },
           _enemy = Tank{
-            _tankCoord = V2 (xm + 5) ym
+            _tankCoord = V2 2 (height-2)
             , _tankDirection = North
             , _tankHealth = 100
           },
@@ -91,7 +89,6 @@ initGame = do
         }
   return $ g
 
--- TODO: not working
 moveTank :: Direction -> Game -> Game
 moveTank d g = g & tank . tankCoord %~ moveCoord d
   where
@@ -102,7 +99,6 @@ moveTank d g = g & tank . tankCoord %~ moveCoord d
       West  -> c & _x %~ (\x -> if x == 0 then width - 1 else x - 1)
       East -> c & _x %~ (\x -> if x == width - 1 then 0 else x + 1)
 
--- TODO: not working
 moveEnemy :: Direction -> Game -> Game
 moveEnemy d g = g & enemy . tankCoord %~ moveCoord d
   where
