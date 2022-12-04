@@ -54,8 +54,8 @@ handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveEnemy
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
 handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = halt g
-handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))         = continue $ fire SelfRole g 
-handleEvent g (VtyEvent (V.EvKey V.KEnter []))      = continue $ fire EnemyRole g 
+handleEvent g (VtyEvent (V.EvKey V.KEnter []))         = continue $ fire SelfRole g 
+handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))      = continue $ fire EnemyRole g 
 handleEvent g _                                     = continue g
 
 -- Drawing
@@ -135,11 +135,11 @@ drawStats g False = hLimit 20
 drawInstructions :: Bool -> Widget Name
 drawInstructions True = padAll 1
   $ vBox [  str "↑: up" , str "↓: down" , str"←: left", str"→: right"
-            ,str "K: shoot"
+            ,str "space: shoot"
          ]
 drawInstructions False = padAll 1
   $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right"
-            ,str "space: shoot"
+            ,str "enter: shoot"
          ]
 
 drawGameOver :: Game -> Widget Name

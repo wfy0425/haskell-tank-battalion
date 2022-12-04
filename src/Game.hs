@@ -37,20 +37,21 @@ makeLenses ''Game
 
 -- Functions
 
-
-moveCoord :: Direction -> Coord -> Coord
-moveCoord d c = case d of
-    North    -> c & _y %~ (\y -> if y == height - 1 then y else y + 1)
-    South  -> c & _y %~ (\y -> if y == 0 then y else y - 1)
-    West  -> c & _x %~ (\x -> if x == 0 then x else x - 1)
-    East -> c & _x %~ (\x -> if x == width - 1 then x else x + 1)
+-- | update coordinate
+-- | Bool: should run inside of the board
+moveCoord :: Direction -> Bool -> Coord -> Coord
+moveCoord d b c = case d of
+    North    -> c & _y %~ (\y -> if b && y == height - 1 then y else y + 1)
+    South  -> c & _y %~ (\y -> if b && y == 0 then y else y - 1)
+    West  -> c & _x %~ (\x -> if b && x == 0 then x else x - 1)
+    East -> c & _x %~ (\x -> if b && x == width - 1 then x else x + 1)
 
 moveTank :: Direction -> Game -> Game
-moveTank d g = g & tank . tankCoord %~ moveCoord d  
+moveTank d g = g & tank . tankCoord %~ moveCoord d True 
 
 
 moveEnemy :: Direction -> Game -> Game
-moveEnemy d g = g & enemy . tankCoord %~ moveCoord d
+moveEnemy d g = g & enemy . tankCoord %~ moveCoord d True
 
 isGameOver :: Game -> Bool
 isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0
@@ -79,16 +80,16 @@ bulletsFly g = g & bullets %~ map moveBullet
 -- bulletsFly g = g & bullets mapped %~ moveBullet 
 
 moveBullet :: Bullet -> Bullet
-moveBullet bullet@Bullet {_bulletDirection = bDir} = bullet & bulletCoord %~ moveCoord bDir
+moveBullet bullet@Bullet {_bulletDirection = bDir} = bullet & bulletCoord %~ moveCoord bDir False
 
 fire :: Role -> Game -> Game 
 fire SelfRole g@Game { _bullets = bs, _tank = t} = g & bullets .~ newBullet 
                                                         where
-                                                            bulletCoord = moveCoord (t ^. tankDirection) (t ^. tankCoord)
+                                                            bulletCoord = moveCoord (t ^. tankDirection) False (t ^. tankCoord)
                                                             bulletDir = (t ^. tankDirection)
                                                             newBullet = (initBullet bulletCoord bulletDir : bs)
 fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet 
                                                         where
-                                                            bulletCoord = moveCoord (e ^. tankDirection) (e ^. tankCoord)
+                                                            bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
                                                             bulletDir = (e ^. tankDirection)
                                                             newBullet = (initBullet bulletCoord bulletDir : bs)
