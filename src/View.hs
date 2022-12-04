@@ -32,7 +32,7 @@ import Global
 
 -- Types
 
-data Cell = Tank | Enemy | Wall | Empty 
+data Cell = Tank | Enemy | WeakWall | Empty 
 
 
 -- Handling events
@@ -73,6 +73,7 @@ drawGrid g = withBorderStyle BS.unicodeBold
     cellAt c
       | c == g ^. tank ^. tankCoord  = Tank
       | c == g ^. enemy ^. tankCoord  = Enemy
+      | c `elem` g ^. walls = WeakWall
       | otherwise           = Empty
 
 drawCell :: Cell -> Widget Name
@@ -80,6 +81,7 @@ drawCell :: Cell -> Widget Name
 drawCell Tank  = withAttr tankAttr cw
 drawCell Enemy  = withAttr enemyAttr cw
 drawCell Empty = withAttr emptyAttr cw
+drawCell WeakWall = withAttr weakWallAttr cw
 
 cw :: Widget Name
 cw = str "  "
@@ -88,7 +90,7 @@ theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (tankAttr, V.red `on` V.red), 
    (enemyAttr, V.blue `on` V.blue),
-   (wallAttr, V.brightYellow `on` V.brightYellow)
+   (weakWallAttr, V.brightYellow `on` V.brightYellow)
   ]
 
 tankAttr, emptyAttr :: AttrName
@@ -96,3 +98,4 @@ tankAttr = "tankAttr"
 enemyAttr = "enemyAttr"
 wallAttr = "wallAttr"
 emptyAttr = "emptyAttr"
+weakWallAttr = "weakWallAttr"

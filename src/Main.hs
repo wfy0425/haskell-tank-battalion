@@ -31,7 +31,7 @@ initGame :: Game
 initGame = Game {
               _tank  = initTank (width - 3) 2
               , _enemy = initTank 2 (height-3)
-              , _walls = []
+              , _walls = weakWalls
               , _bullets = []
             }
 

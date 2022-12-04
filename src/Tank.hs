@@ -5,7 +5,9 @@ module Tank
   ( Game(..)
   , Direction(..)
   , initTank
-  , height, width, tank, moveTank, moveEnemy, tankCoord, enemy, 
+  , weakWalls
+  , height, width, tank, moveTank, moveEnemy, tankCoord, enemy
+  , walls
   ) where
 
 import Control.Applicative ((<|>))
@@ -17,6 +19,7 @@ import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.State
 import Control.Monad.Extra (orM)
 import Data.Sequence (Seq(..), (<|))
+import Data.List
 import qualified Data.Sequence as S
 import Linear.V2 (V2(..), _x, _y)
 import System.Random (Random(..), newStdGen)
@@ -42,6 +45,22 @@ initTank xm ym = Tank {
               , _tankDirection = North
               , _tankHealth = 100
             } 
+
+-- initWall :: Coord -> Bool -> Wall
+-- initWall c isWeak = Wall {
+--             _wallCoord = c
+--               , _isWeak = isWeak
+--             }
+
+weakWalls :: [Wall]
+weakWalls = do
+  let wallTop = height - 2
+  let wallBottom = height - 9
+  let wallRight = 15
+  let wallLeft = 5
+  let positions = [V2 x y | x <- [wallLeft..wallRight], y <- [wallBottom..wallTop]] \\ [V2 x y | x <- [wallLeft+1..wallRight-1], y <- [wallBottom+1..wallTop-1]]
+  -- let collectionA = [initWall c True| c <- positions]
+  positions
 
 
 data Direction
