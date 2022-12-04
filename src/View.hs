@@ -42,7 +42,7 @@ data Tick = Tick
 -- if we call this "Name" now.
 type Name = ()
 
-data Cell = Tank | Empty
+data Cell = Tank | Enemy | Empty
 
 -- App definition
 
@@ -101,12 +101,14 @@ drawGrid g = withBorderStyle BS.unicodeBold
     cellsInRow y = [drawCoord (V2 x y) | x <- [0..width-1]]
     drawCoord    = drawCell . cellAt
     cellAt c
-      | c == g ^. tank      = Tank
+      | c == g ^. tank ^. tankCoord  = Tank
+      | c == g ^. enemy ^. tankCoord  = Enemy
       | otherwise           = Empty
 
 drawCell :: Cell -> Widget Name
 -- drawCell Snake = withAttr snakeAttr cw
 drawCell Tank  = withAttr tankAttr cw
+drawCell Enemy  = withAttr enemyAttr cw
 drawCell Empty = withAttr emptyAttr cw
 
 cw :: Widget Name
@@ -114,9 +116,11 @@ cw = str "  "
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-  [ (tankAttr, V.red `on` V.red)
+  [ (tankAttr, V.red `on` V.red), 
+   (enemyAttr, V.blue `on` V.blue)
   ]
 
 tankAttr, emptyAttr :: AttrName
 tankAttr = "tankAttr"
+enemyAttr = "enemyAttr"
 emptyAttr = "emptyAttr"

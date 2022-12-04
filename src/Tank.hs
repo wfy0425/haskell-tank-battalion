@@ -5,7 +5,7 @@ module Tank
   ( initGame
   , Game(..)
   , Direction(..)
-  , height, width, tank, moveTank, moveEnemy
+  , height, width, tank, moveTank, moveEnemy, tankCoord, enemy
   ) where
 
 import Control.Applicative ((<|>))
@@ -93,10 +93,9 @@ initGame = do
 
 -- TODO: not working
 moveTank :: Direction -> Game -> Game
-moveTank d g = g & tank %~ moveT d
+moveTank d g = g & tank . tankCoord %~ moveCoord d
   where
-    moveT = _tankCoord %~ moveCoord d
-    moveCoord :: Direction -> Tank -> Tank
+    moveCoord :: Direction -> Coord -> Coord
     moveCoord d c = case d of
       North    -> c & _y %~ (\y -> if y == 0 then height - 1 else y - 1)
       South  -> c & _y %~ (\y -> if y == height - 1 then 0 else y + 1)
@@ -105,7 +104,7 @@ moveTank d g = g & tank %~ moveT d
 
 -- TODO: not working
 moveEnemy :: Direction -> Game -> Game
-moveEnemy d g = g & enemy & tankCoord %~ moveCoord d
+moveEnemy d g = g & enemy . tankCoord %~ moveCoord d
   where
     moveCoord :: Direction -> Coord -> Coord
     moveCoord d c = case d of
