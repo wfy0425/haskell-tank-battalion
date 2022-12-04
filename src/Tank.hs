@@ -2,10 +2,10 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Tank
-  ( initGame
-  , Game(..)
+  ( Game(..)
   , Direction(..)
-  , height, width, tank, moveTank, moveEnemy, tankCoord, enemy
+  , initTank
+  , height, width, tank, moveTank, moveEnemy, tankCoord, enemy, 
   ) where
 
 import Control.Applicative ((<|>))
@@ -21,9 +21,11 @@ import qualified Data.Sequence as S
 import Linear.V2 (V2(..), _x, _y)
 import System.Random (Random(..), newStdGen)
 
+import Global
+
 
 -- Types
-
+-- todo: move Game model into seperate file?
 data Game = Game
   { 
     _tank   :: Tank        -- ^ obj of the tank
@@ -34,6 +36,14 @@ data Game = Game
 
 type Coord = V2 Int
 
+initTank :: Tank
+initTank = Tank {
+            _tankCoord = V2 xm ym
+              , _tankDirection = North
+              , _tankHealth = 100
+            } where
+                xm = width `div` 2
+                ym = height `div` 2
 
 
 data Direction
@@ -61,35 +71,10 @@ data Bullet = Bullet {
 makeLenses ''Game
 makeLenses ''Tank
 makeLenses ''Bullet
--- -- Constants
 
-height, width :: Int
-height = 20
-width = 20
 
 -- Functions
 
--- | Initialize a paused game with random food location
-initGame :: IO Game
-initGame = do
-  let xm = width `div` 2
-      ym = height `div` 2
-      g  = Game
-        {  
-          _tank  = Tank{
-            _tankCoord = V2 xm ym
-            , _tankDirection = North
-            , _tankHealth = 100
-          },
-          _enemy = Tank{
-            _tankCoord = V2 (xm + 5) ym
-            , _tankDirection = North
-            , _tankHealth = 100
-          },
-          _walls = [],
-          _bullets = []
-        }
-  return $ g
 
 -- TODO: not working
 moveTank :: Direction -> Game -> Game
@@ -112,46 +97,3 @@ moveEnemy d g = g & enemy . tankCoord %~ moveCoord d
       South  -> c & _y %~ (\y -> if y == height - 1 then 0 else y + 1)
       West  -> c & _x %~ (\x -> if x == 0 then width - 1 else x - 1)
       East -> c & _x %~ (\x -> if x == width - 1 then 0 else x + 1)
-
-      
--- move :: Direction -> Game -> Game
--- move d g = g & tank & tankDirection .~ d
---   where
---     moveCoord :: Direction -> Coord -> Coord
---     moveCoord d c = case d of
---       North    -> c & _y %~ (\y -> if y == 0 then height - 1 else y - 1)
---       South  -> c & _y %~ (\y -> if y == height - 1 then 0 else y + 1)
---       West  -> c & _x %~ (\x -> if x == 0 then width - 1 else x - 1)
---       East -> c & _x %~ (\x -> if x == width - 1 then 0 else x + 1)
-      
--- moveBullet :: Direction -> Game -> Game
--- moveBullet d g = g & bullets & bulletCoord %~ moveCoord d
---   where
---     moveCoord :: Direction -> Coord -> Coord
---     moveCoord d c = case d of
---       North    -> c & _y %~ (\y -> if y == 0 then height - 1 else y - 1)
---       South  -> c & _y %~ (\y -> if y == height - 1 then 0 else y + 1)
---       West  -> c & _x %~ (\x -> if x == 0 then width - 1 else x - 1)
---       East -> c & _x %~ (\x -> if x == width - 1 then 0 else x + 1)
-      
--- -- | Check if the game is over
--- isGameOver :: Game -> Bool
--- isGameOver g = g ^. tankHealth <= 0 || g ^. enemyHealth <= 0
---   where
---     enemyHealth = enemy . tankHealth
---     tankHealth = tank . tankHealth
--- -- | Check if the game is won
--- isGameWon :: Game -> Bool
--- isGameWon g = g ^. enemyHealth <= 0
---   where
---     enemyHealth = enemy . tankHealth
---     tankHealth = tank . tankHealth
--- -- | Check if the game is lost
--- isGameLost :: Game -> Bool
--- isGameLost g = g ^. tankHealth <= 0
---   where
---     enemyHealth = enemy . tankHealth
---     tankHealth = tank . tankHealth
--- -- | Check if the game is paused
--- isGamePaused :: Game -> Bool
--- isGamePaused g =

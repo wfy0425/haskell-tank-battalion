@@ -28,42 +28,12 @@ import qualified Graphics.Vty as V
 import Data.Sequence (Seq)
 import qualified Data.Sequence as S
 import Linear.V2 (V2(..))
+import Global
 
 -- Types
 
--- | Ticks mark passing of time
+data Cell = Tank | Enemy | Wall | Empty 
 
--- This is our custom event that will be constantly fed into the app.
-data Tick = Tick
-
--- | Named resources
---
--- Not currently used, but will be easier to refactor
--- if we call this "Name" now.
-type Name = ()
-
-data Cell = Tank | Enemy | Empty
-
--- App definition
-
-app :: App Game Tick Name
-app = App { appDraw = drawUI
-          , appChooseCursor = neverShowCursor
-          , appHandleEvent = handleEvent
-          , appStartEvent = return
-          , appAttrMap = const theMap
-          }
-
-main :: IO ()
-main = do
-  chan <- newBChan 10
-  forkIO $ forever $ do
-    writeBChan chan Tick
-    threadDelay 100000 -- decides how fast your game moves
-  g <- initGame
-  let builder = V.mkVty V.defaultConfig
-  initialVty <- builder
-  void $ customMain initialVty builder (Just chan) app g
 
 -- Handling events
 
@@ -117,10 +87,12 @@ cw = str "  "
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (tankAttr, V.red `on` V.red), 
-   (enemyAttr, V.blue `on` V.blue)
+   (enemyAttr, V.blue `on` V.blue),
+   (wallAttr, V.brightYellow `on` V.brightYellow)
   ]
 
 tankAttr, emptyAttr :: AttrName
 tankAttr = "tankAttr"
 enemyAttr = "enemyAttr"
+wallAttr = "wallAttr"
 emptyAttr = "emptyAttr"
