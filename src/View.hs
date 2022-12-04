@@ -96,6 +96,7 @@ theMap = attrMap V.defAttr
    (enemyAttr, V.blue `on` V.blue),
    (wallAttr, V.white `on` V.white),
    (stoneAttr, V.brightYellow `on` V.brightYellow)
+  --  (gameOverAttr, V.white `V.withStyle` V.bold)
   ]
 
 tankAttr, emptyAttr :: AttrName
@@ -105,17 +106,21 @@ wallAttr = "wallAttr"
 stoneAttr = "stoneAttr"
 emptyAttr = "emptyAttr"
 
+gameOverAttr :: AttrName
+gameOverAttr = "gameOver"
 
 drawStats :: Game -> Bool -> Widget Name
 drawStats g True = hLimit 20
   $ vBox [ padTop (Pad 2) $ drawCell Tank
           ,str $ "Lives: " ++ show (g ^. tank ^. tankHealth)
           , drawInstructions True
+          , drawGameOver g
           ]
 drawStats g False = hLimit 20
   $ vBox [padTop (Pad 2) $ drawCell Enemy
           ,str $ "Lives: " ++ show (g ^. enemy ^. tankHealth)
           , drawInstructions False
+           , drawGameOver g
   ]
 
 drawInstructions :: Bool -> Widget Name
@@ -127,3 +132,20 @@ drawInstructions False = padAll 1
   $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right"
             ,str "space: shoot"
          ]
+
+drawGameOver :: Game -> Widget Name
+drawGameOver g =
+  if (isGameWon g)
+    then padAll 1
+      $ vBox [  drawCell Tank, str "Won!"
+              -- , str "r:restart"
+              , str "q:quit"
+              ]
+    else if (isGameLost g)
+        then padAll 1
+          $ vBox [  drawCell Enemy, str "Won!"
+            -- , str "r:restart"
+            , str "q:quit"
+            ]
+        else emptyWidget
+          

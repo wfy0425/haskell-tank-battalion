@@ -6,6 +6,7 @@ module Tank
   , Direction(..)
   , initTank, initWalls, initStones
   , height, width, tank, moveTank, moveEnemy, tankCoord, enemy, tankHealth, walls, stones
+  , isGameOver, isGameWon, isGameLost
   ) where
 
 import Control.Applicative ((<|>))
@@ -115,3 +116,12 @@ moveEnemy d g = g & enemy . tankCoord %~ moveCoord d
       South  -> c & _y %~ (\y -> if y == 0 then y else y - 1)
       West  -> c & _x %~ (\x -> if x == 0 then x else x - 1)
       East -> c & _x %~ (\x -> if x == width - 1 then x else x + 1)
+
+isGameOver :: Game -> Bool
+isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0
+
+isGameWon :: Game -> Bool
+isGameWon g = g ^. enemy . tankHealth <= 0
+
+isGameLost :: Game -> Bool
+isGameLost g = g ^. tank . tankHealth <= 0
