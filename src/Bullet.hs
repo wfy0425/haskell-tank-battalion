@@ -22,3 +22,4 @@ makeLenses ''Bullet
 -- todo: fire (role?)
 -- todo: 这车得要有厚度啊，不然和bullet一个样子了
 -- todo: 音效
+
