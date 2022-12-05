@@ -235,3 +235,8 @@ fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet
                                                             bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
                                                             bulletDir = e ^. tankDirection
                                                             newBullet = initBullet bulletCoord bulletDir : bs
+
+-- TODO: Add ammo pack which increases the damage of the bullet, may be need to add a new type of bullet
+-- TODO: (Maybe) add mine which explodes when tank is near
+-- TODO: Investigate bullet speed to see if it is possible to make it faster
+    
