@@ -33,11 +33,8 @@ data Game = Game
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   , _selfBase :: Base
   , _enemyBase :: Base
-<<<<<<< HEAD
   , _gameState :: GameState
-=======
   , _collectible :: Collectible
->>>>>>> b8a6848828f24f72e43d2bbdd7fcbe83b891ffdb
   } deriving (Show)
 
 
@@ -223,13 +220,9 @@ fire SelfRole g@Game { _bullets = bs, _tank = t} = g & bullets .~ newBullet
 fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet
                                                         where
                                                             bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
-<<<<<<< HEAD
-                                                            bulletDir = (e ^. tankDirection)
-                                                            newBullet = (initBullet bulletCoord bulletDir : bs)
+                                                            bulletDir = e ^. tankDirection
+                                                            newBullet = initBullet bulletCoord bulletDir : bs
+
 
 setGameState :: Game -> GameState -> Game
 setGameState g s = g & gameState .~ s
-=======
-                                                            bulletDir = e ^. tankDirection
-                                                            newBullet = initBullet bulletCoord bulletDir : bs
->>>>>>> b8a6848828f24f72e43d2bbdd7fcbe83b891ffdb

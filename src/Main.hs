@@ -41,11 +41,8 @@ initGame = Game {
               , _bullets = []
               , _selfBase = initBase SelfRole
               , _enemyBase = initBase EnemyRole
-<<<<<<< HEAD
               , _gameState = GameReady
-=======
               , _collectible = initCollectible (width - 3) 5
->>>>>>> b8a6848828f24f72e43d2bbdd7fcbe83b891ffdb
             }
 
 main :: IO ()
