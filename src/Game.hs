@@ -2,7 +2,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-
 module Game where
 
 import Control.Applicative ((<|>))
@@ -113,7 +112,6 @@ step s = flip execState s . runMaybeT $ do
     hit <|> attack <|> collect <|> blinkState <|> MaybeT (Just <$> modify bulletsFly)
 
 
-
 die :: MaybeT (State Game) ()
 die = error "to fill"
 
@@ -199,14 +197,6 @@ increaseBlink cs t= if t ^. tankCoord `elem` cs && t ^. tankHealth > 0
   then
     t & tankBlinkCount .~ (t ^. tankBlinkCount + 4)
   else t
-
-
-
--- delCollectible :: [Collectible] -> [Collectible] -> [Collectible]
--- delCollectible cs cs' = filter (\c -> not ( c `elem` cs) ) cs'
-
--- collect1 :: Coord -> Tank -> Tank
--- collect1 c t = if (t ^. tankCoord `elem` c && t ^. tankHealth > 0) then t & tankHealth .~ (t ^. tankHealth + 10) else t 
 
 -- | Get next position of bullets
 bulletsFly :: Game -> Game
