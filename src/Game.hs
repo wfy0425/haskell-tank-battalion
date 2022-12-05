@@ -46,12 +46,35 @@ moveCoord d b c = case d of
     West  -> c & _x %~ (\x -> if b && x == 0 then x else x - 1)
     East -> c & _x %~ (\x -> if b && x == width - 1 then x else x + 1)
 
+nextCoord :: Direction -> Coord -> Coord
+nextCoord d c = do
+    let x = c ^. _x
+    let y = c ^. _y
+    case d of
+      North -> V2 x (y + 1)
+      South -> V2 x (y - 1)
+      West -> V2 (x - 1) y
+      East -> V2 (x + 1) y 
+
 moveTank :: Direction -> Game -> Game
-moveTank d g = g & tank . tankCoord %~ moveCoord d True 
-
-
+moveTank d g = do
+  let c = nextCoord d (g ^. tank . tankCoord)
+  let x = c ^. _x
+  let y = c ^. _y
+  if (x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)) then
+    g & tank . tankCoord .~ c & tank . tankDirection .~ d
+  else
+    g & tank . tankDirection .~ d
+  
 moveEnemy :: Direction -> Game -> Game
-moveEnemy d g = g & enemy . tankCoord %~ moveCoord d True
+moveEnemy d g = do
+  let c = nextCoord d (g ^. enemy . tankCoord)
+  let x = c ^. _x
+  let y = c ^. _y
+  if (x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)) then
+    g & enemy . tankCoord .~ c & enemy . tankDirection .~ d
+  else
+    g & enemy . tankDirection .~ d
 
 isGameOver :: Game -> Bool
 isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0
