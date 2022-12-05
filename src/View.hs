@@ -229,12 +229,14 @@ drawStats g False = hLimit 20
 
 drawInstructions :: Bool -> Widget Name
 drawInstructions True = padAll 1
-  $ vBox [  str "i: up" , str "k: down" , str"j: left", str"l: right"
-            ,str "enter: shoot"
+  $ vBox [  str "I: up" , str "K: down" , str"J: left", str"L: right",
+            str "O: place brick",
+            str "enter: shoot"
          ]
 drawInstructions False = padAll 1
-  $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right"
-            ,str "space: shoot"
+  $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right",
+            str "E: place brick",
+            str "space: shoot"
          ]
 
 drawGameOver :: Game -> Widget Name
