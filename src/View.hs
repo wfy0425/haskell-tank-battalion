@@ -65,6 +65,13 @@ drawUI g =
   [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True),
     drawCell WallCell
   ]
+-- drawUI g =
+--   [ C.vCenter $ vLimit 22 $ hBox
+--       [ padLeft Max $ padRight (Pad 2) $ drawStats (ui ^. game)
+--       , drawGrid g
+--       , padRight Max $ padLeft (Pad 2) $ drawInfo (ui ^. game)
+--       ]
+--   ]
 
 drawGrid :: Game -> Widget Name
 drawGrid g = withBorderStyle BS.unicodeBold
@@ -94,6 +101,10 @@ drawCell StoneCell = withAttr stoneAttr cw
 
 cw :: Widget Name
 cw = str "  "
+
+star :: Widget Name
+star = str "O"
+
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -131,6 +142,21 @@ drawStats g False = hLimit 20
           , drawInstructions False
            , drawGameOver g
   ]
+
+-- drawStats :: Game -> Widget Name
+-- drawStats g =
+--   hLimit 22
+--     $ withBorderStyle BS.unicodeBold
+--     $ B.borderWithLabel (str "Stats")
+--     $ vBox
+--         [ drawStat "Score" $ g ^. score
+--         , padTop (Pad 1) $ drawStat "Level" $ g ^. level
+--         , drawLeaderBoard g
+--         ]
+
+-- drawStat :: String -> Int -> Widget Name
+-- drawStat s n = padLeftRight 1 $ str s <+> padLeft Max (str $ show n)
+
 
 drawInstructions :: Bool -> Widget Name
 drawInstructions True = padAll 1

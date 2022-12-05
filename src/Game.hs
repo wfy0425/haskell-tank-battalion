@@ -137,7 +137,7 @@ attack = do
             modifying bullets (delBullets coordsToBeDel)
 
 hurt :: [Coord] -> Tank -> Tank
-hurt cs t = if t ^. tankCoord `elem` cs then t & tankHealth .~ (t ^. tankHealth - 10) else t
+hurt cs t = if (t ^. tankCoord `elem` cs && t ^. tankHealth > 0) then t & tankHealth .~ (t ^. tankHealth - 10) else t
 
 -- | Get next position of bullets
 bulletsFly :: Game -> Game
