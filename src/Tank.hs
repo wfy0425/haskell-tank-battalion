@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Tank
   ( Tank(..)
-  , tankCoord, tankHealth, tankDirection
+  , tankCoord, tankHealth, tankDirection, baseHealth
   , initTank
   ) where
 
@@ -30,6 +30,7 @@ initTank xm ym = Tank {
             _tankCoord = V2 xm ym
               , _tankDirection = North
               , _tankHealth = 100
+              , _baseHealth = 200
             } 
 
 
@@ -37,6 +38,7 @@ data Tank = Tank {
   _tankCoord :: Coord
   , _tankDirection :: Direction
   , _tankHealth :: Int
+  , _baseHealth :: Int
 } deriving (Show)
 
 

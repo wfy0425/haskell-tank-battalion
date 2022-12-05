@@ -39,6 +39,7 @@ initGame = Game {
               , _bullets = []
               , _selfBase = initBase SelfRole
               , _enemyBase = initBase EnemyRole
+              , _gameOver = False
             }
 
 main :: IO ()

@@ -22,7 +22,3 @@ makeLenses ''Bullet
 initBullet :: Coord -> Direction -> Bullet 
 initBullet c d = Bullet { _bulletCoord = c, _bulletDirection = d }
 
--- todo: hit
--- todo: 这车得要有厚度啊，不然和bullet一个样子了
--- todo: 音效
-
