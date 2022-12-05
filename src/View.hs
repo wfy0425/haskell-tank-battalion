@@ -31,6 +31,8 @@ import Linear.V2 (V2(..))
 import Global
 import Game
 import Bullet
+import Collectible
+
 -- Types
 
 
@@ -85,6 +87,7 @@ drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
   | c == tankCo               = drawTank $ _tank g
   | c == enemyCo              = drawEnemy $ _enemy g
+  | c == collectCo            = drawCollectible $ _collectible g
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
   | c `elem` bulletCoords     = drawBullet
@@ -94,6 +97,7 @@ drawCellFromGame  g c
   where
       tankCo                  = _tankCoord $ _tank g
       enemyCo                 = _tankCoord $ _enemy g
+      collectCo               = _collectibleCoord $ _collectible g
       bulletCoords            = [b ^. bulletCoord | b <- g ^. bullets]
 
 
@@ -130,11 +134,18 @@ drawSelfBase = withAttr selfBaseAttr cw
 drawEnemyBase :: Widget Name
 drawEnemyBase = withAttr enemyBaseAttr cw
 
+drawCollectible :: Collectible -> Widget Name
+drawCollectible cc = withAttr collectibleAttr amount
+
 cw :: Widget Name
 cw = str "  "
 
+
 star :: Widget Name
 star = str "O"
+
+amount :: Widget Name
+amount = str "20"
 
 
 theMap :: AttrMap
@@ -146,7 +157,8 @@ theMap = attrMap V.defAttr
    (bulletAttr, V.black `on` V.green),
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
   (selfBaseAttr, V.black `on` V.red),
-  (enemyBaseAttr, V.black `on` V.blue)
+  (enemyBaseAttr, V.black `on` V.blue),
+  (collectibleAttr, V.black `on` V.yellow)
   ]
 
 tankAttr, enemyAttr, wallAttr, stoneAttr, emptyAttr, selfBaseAttr, enemyBaseAttr :: AttrName
@@ -157,6 +169,9 @@ stoneAttr = "stoneAttr"
 emptyAttr = "emptyAttr"
 selfBaseAttr = "selfBaseAttr"
 enemyBaseAttr = "enemyBaseAttr"
+
+collectibleAttr :: AttrName
+collectibleAttr = "collectibleAttr"
 
 gameOverAttr :: AttrName
 gameOverAttr = "gameOver"

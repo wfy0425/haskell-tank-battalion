@@ -4,7 +4,7 @@
 
 module Game (
     Game(..)
-    , tank, enemy, walls, stones, bullets, selfBase, enemyBase
+    , tank, enemy, walls, stones, bullets, selfBase, enemyBase, collectible
     , isGameLost, isGameOver, isGameWon, moveEnemy, moveTank, fire, step
 ) where
 
@@ -19,7 +19,7 @@ import Tank
 import Global
 import Bullet
 import Hitable
-
+import Collectible
 -- types
 
 
@@ -32,6 +32,7 @@ data Game = Game
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   , _selfBase :: Base
   , _enemyBase :: Base
+  , _collectible :: Collectible
   } deriving (Show)
 
 
@@ -92,7 +93,7 @@ step :: Game -> Game
 step s = flip execState s . runMaybeT $ do 
     -- MaybeT $ guard . isGameOver $ s
     -- die <|> MaybeT (Just <$> modify bulletsFly) 
-    hit <|> attack <|> MaybeT (Just <$> modify bulletsFly) 
+    hit <|> attack <|> collect <|> MaybeT (Just <$> modify bulletsFly) 
 
 
 die :: MaybeT (State Game) ()
@@ -122,6 +123,24 @@ delBullets coordsToBeDel bs = filter (\b -> not ((b ^. bulletCoord) `elem` coord
 delWalls :: [Coord] -> [Coord] -> [Coord]
 delWalls coordsToBeDel ws = filter (\w -> not ( w `elem` coordsToBeDel) ) ws
 
+
+-- if tank is on collectible, collect it
+collect :: MaybeT (State Game) ()
+collect = do
+    tankGetter <- use tank
+    collectibleGetter <- use collectible
+    guard $ tankGetter ^. tankCoord == collectibleGetter ^. collectibleCoord
+    MaybeT . fmap Just $ do
+        modifying tank (collectCollectible collectibleGetter)
+
+-- increase tank health by 10
+collectCollectible :: Collectible -> Tank -> Tank
+collectCollectible c t = t & tankHealth %~ (\h -> if h + 10 > 100 then 100 else h + 10)
+
+
+
+
+
 attack :: MaybeT (State Game) ()
 attack = do 
         bulletGetter <- use bullets
@@ -138,6 +157,14 @@ attack = do
 
 hurt :: [Coord] -> Tank -> Tank
 hurt cs t = if (t ^. tankCoord `elem` cs && t ^. tankHealth > 0) then t & tankHealth .~ (t ^. tankHealth - 10) else t
+
+
+
+-- delCollectible :: [Collectible] -> [Collectible] -> [Collectible]
+-- delCollectible cs cs' = filter (\c -> not ( c `elem` cs) ) cs'
+
+-- collect1 :: Coord -> Tank -> Tank
+-- collect1 c t = if (t ^. tankCoord `elem` c && t ^. tankHealth > 0) then t & tankHealth .~ (t ^. tankHealth + 10) else t 
 
 -- | Get next position of bullets
 bulletsFly :: Game -> Game

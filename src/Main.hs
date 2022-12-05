@@ -16,6 +16,8 @@ import View
 import Global
 import Game
 import Hitable
+import Collectible
+
 
 
 -- App definition
@@ -39,6 +41,7 @@ initGame = Game {
               , _bullets = []
               , _selfBase = initBase SelfRole
               , _enemyBase = initBase EnemyRole
+              , _collectible = initCollectible (width - 3) 5
             }
 
 main :: IO ()
