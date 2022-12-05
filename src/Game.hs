@@ -47,11 +47,15 @@ moveCoord d b c = case d of
     East -> c & _x %~ (\x -> if b && x == width - 1 then x else x + 1)
 
 moveTank :: Direction -> Game -> Game
-moveTank d g = g & tank . tankCoord %~ moveCoord d True 
+moveTank d g = g {_tank = movedTank}
+  where
+    movedTank = (_tank g) {_tankDirection = d, _tankCoord = moveCoord d True (_tankCoord (_tank g))}
 
 
 moveEnemy :: Direction -> Game -> Game
-moveEnemy d g = g & enemy . tankCoord %~ moveCoord d True
+moveEnemy d g = g {_enemy = movedTank}
+  where
+    movedTank = (_enemy g) {_tankDirection = d, _tankCoord = moveCoord d True (_tankCoord (_enemy g))}
 
 isGameOver :: Game -> Bool
 isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0
