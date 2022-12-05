@@ -37,6 +37,8 @@ initGame = Game {
               , _walls = initWalls
               , _stones = initStones
               , _bullets = []
+              , _selfBase = initBase SelfRole
+              , _enemyBase = initBase EnemyRole
             }
 
 main :: IO ()

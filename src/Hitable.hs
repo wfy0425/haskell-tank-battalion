@@ -4,7 +4,7 @@
 
 module Hitable (
     Wall, Stone
-    , initStones, initWalls
+    , initStones, initWalls, initBase
 ) where 
 
 import Data.List
@@ -46,3 +46,7 @@ initStones = do
   let collectionB = [V2 x y | x <- [bLeft..bRight], y <- [bBottom..bTop]] \\ [V2 x y | x <- [bLeft+1..bRight-1], y <- [bBottom+1..bTop-1]]
   let positions = collectionA ++ collectionB
   positions
+
+initBase :: Role -> [Coord]
+initBase SelfRole = [V2 (width - 2) (height - 2), V2 (width - 2) (height - 3), V2 (width - 3) (height - 2), V2 (width - 3) (height - 3)]
+initBase EnemyRole = [V2 1 1, V2 1 2, V2 2 1, V2 2 2]

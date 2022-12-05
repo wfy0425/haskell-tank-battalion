@@ -4,7 +4,7 @@
 
 module Game (
     Game(..)
-    , tank, enemy, walls, stones, bullets
+    , tank, enemy, walls, stones, bullets, selfBase, enemyBase
     , isGameLost, isGameOver, isGameWon, moveEnemy, moveTank, fire, step
 ) where
 
@@ -30,6 +30,8 @@ data Game = Game
   , _walls  :: [Wall]       -- ^ location of the walls
   , _stones :: [Stone]      -- ^ location of the stones
   , _bullets :: [Bullet]      -- ^ obj of the bullets
+  , _selfBase :: [Coord]
+  , _enemyBase :: [Coord]
   } deriving (Show)
 
 

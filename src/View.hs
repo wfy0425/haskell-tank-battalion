@@ -76,8 +76,8 @@ drawGrid g = withBorderStyle BS.unicodeBold
     drawCoord    = drawCell . cellAt
     bulletCoords = [b ^. bulletCoord | b <- g ^. bullets]
     cellAt c
-      | c == g ^. tank ^. tankCoord  = TankCell
-      | c == g ^. enemy ^. tankCoord  = EnemyCell
+      | c == g ^. tank ^. tankCoord || c `elem` g ^. selfBase = TankCell
+      | c == g ^. enemy ^. tankCoord || c `elem` g ^. enemyBase   = EnemyCell
       | c `elem` g ^. walls = WallCell
       | c `elem` g ^. stones = StoneCell
       | c `elem` bulletCoords = BulletCell
