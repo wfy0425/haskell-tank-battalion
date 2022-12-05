@@ -161,10 +161,15 @@ collect = do
     guard $ tankGetter ^. tankCoord == collectibleGetter ^. collectibleCoord
     MaybeT . fmap Just $ do
         modifying tank (collectCollectible collectibleGetter)
+        modifying collectible (deleteCollectible collectibleGetter)
 
 -- increase tank health by 10
 collectCollectible :: Collectible -> Tank -> Tank
 collectCollectible c t = t & tankHealth %~ (\h -> if h + 10 > 100 then 100 else h + 10)
+
+-- delete the collectible
+deleteCollectible :: Collectible -> Collectible -> Collectible
+deleteCollectible c c' = c' & collectibleCoord .~ V2 (-1) (-1)
 
 
 
