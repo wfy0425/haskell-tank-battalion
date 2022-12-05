@@ -61,11 +61,14 @@ handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') []))       = continue $ buildWall
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') [])) = continue $ turn East g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'h') [])) = continue $ turn West g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'p') []))       = continue $ setGameState g GameRunning
+-- handleEvent g (VtyEvent (V.EvKey (V.KChar 'p') []))       = continue $ setGameState g GameRunning
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') []))       = halt g
 handleEvent g (VtyEvent (V.EvKey V.KEsc []))              = halt g
-handleEvent g (VtyEvent (V.EvKey V.KEnter []))            = continue $ fire SelfRole g
 handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))       = continue $ fire EnemyRole g
+handleEvent g (VtyEvent (V.EvKey V.KEnter []))
+  | g^.gameState == GameReady = continue $ setGameState g GameRunning
+  | g ^. gameState == GameRunning = continue $ fire SelfRole g
+
 handleEvent g _                                           = continue g
 
 -- Drawing
@@ -237,6 +240,20 @@ drawInstructions False = padAll 1
             ,str "space: shoot"
          ]
 
+-- drawGameOver :: Game -> Widget Name
+-- drawGameOver g
+--   | isGameWon g = padAll 1 $ vBox [
+--       drawTank SelfRole (_tank g), str "Won!",
+--             -- , str "r:restart"
+--              str "q:quit"
+--             ]
+--   | isGameLost g = padAll 1 $ vBox [
+--       drawTank EnemyRole (_enemy g), str "Won!",
+--       -- , str "r:restart"
+--        str "q:quit"
+--       ]
+--   | otherwise = emptyWidget
+
 drawGameOver :: Game -> Widget Name
 drawGameOver g
   | isGameWon g = padAll 1 $ vBox [
@@ -250,6 +267,7 @@ drawGameOver g
        str "q:quit"
       ]
   | otherwise = emptyWidget
+
 
 
 
@@ -273,7 +291,7 @@ drawWelcome :: Game -> [Widget Name]
 drawWelcome g = [ C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcomeText1 <=> welcomeText2)] ]
   where 
     welcomeText1 = C.hCenter $ hLimit (34 * 2) $ str "Welcome to Tank!"
-    welcomeText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <p> for new game | <q> to exit."
+    welcomeText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
     welcomePaint = hBox (map dummyDraw "t a n k" )
 
 dummyProcess :: [[Int]] -> Widget Name
