@@ -2,11 +2,13 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+
 module Game where
 
 import Control.Applicative ((<|>))
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.State
+
 import Control.Monad (guard)
 import Control.Lens hiding ((<|), (|>), (:>), (:<))
 import Linear.V2 (V2(..), _x, _y)
@@ -28,6 +30,7 @@ data Game = Game
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   , _selfBase :: Base
   , _enemyBase :: Base
+  , _gameOver :: Bool
   , _collectible :: Collectible
   } deriving (Show)
 
@@ -96,24 +99,25 @@ buildWall EnemyRole g@Game{ _walls = ws} = do
     g & walls .~ ws
 
 isGameOver :: Game -> Bool
-isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0
+isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0 || g ^. tank . baseHealth <= 0 || g ^. enemy . baseHealth <= 0
 
 isGameWon :: Game -> Bool
-isGameWon g = g ^. enemy . tankHealth <= 0
+isGameWon g = g ^. enemy . tankHealth <= 0 || g ^. enemy . baseHealth <= 0
 
 isGameLost :: Game -> Bool
-isGameLost g = g ^. tank . tankHealth <= 0
+isGameLost g = g ^. tank . tankHealth <= 0 || g ^. tank . baseHealth <= 0
 
 -- | step forward in time
 step :: Game -> Game
-step s = flip execState s . runMaybeT $ do
-    -- MaybeT $ guard . isGameOver $ s
-    -- die <|> MaybeT (Just <$> modify bulletsFly) 
-    hit <|> attack <|> collect <|> blinkState <|> MaybeT (Just <$> modify bulletsFly)
+step s = flip execState s . runMaybeT $ do 
+    guard $ not (s ^. gameOver)
+    die <|> hit <|> attack <|> collect <|> blinkState <|> MaybeT (Just <$> modify bulletsFly)
 
 
 die :: MaybeT (State Game) ()
-die = error "to fill"
+die = do
+    MaybeT . fmap guard $ isGameOver <$> get
+    MaybeT . fmap Just $ gameOver .= True
 
 -- bulletCoords :: Game -> [Coord] 
 -- bulletCoords g = [ c | c <- g ^. bullets ]
@@ -123,15 +127,22 @@ hit = do
     bulletGetter <- use bullets
     wallGetter <- use walls
     stoneGetter <- use stones
-    let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter,
-                                             w <- wallGetter,
-                                             s <- stoneGetter,
-                                             b ^. bulletCoord  == w || b ^. bulletCoord == s ]
-
+    selfBaseGetter <- use selfBase
+    enemyBaseGetter <- use enemyBase
+    let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter, 
+                                             w <- wallGetter, 
+                                             s <- stoneGetter, 
+                                             sb <- selfBaseGetter,
+                                             eb <- enemyBaseGetter,
+                                             b ^. bulletCoord  == w || b ^. bulletCoord == s 
+                                             || b ^. bulletCoord == sb || b ^. bulletCoord == eb]
     guard $ not $ null coordsToBeDel
     MaybeT . fmap Just $ do
         modifying bullets (delBullets coordsToBeDel)
         modifying walls (delWalls coordsToBeDel)
+        modifying tank (reduceBaseHealth (head coordsToBeDel) selfBaseGetter)
+        modifying enemy (reduceBaseHealth (head coordsToBeDel) enemyBaseGetter)
+
 
 blinkState :: MaybeT (State Game) ()
 blinkState = do
@@ -153,6 +164,9 @@ delWalls :: [Coord] -> [Coord] -> [Coord]
 delWalls coordsToBeDel ws = filter (\w -> not ( w `elem` coordsToBeDel) ) ws
 
 
+reduceBaseHealth :: Coord -> Base -> Tank -> Tank
+reduceBaseHealth coordsToBeDel bs t = if coordsToBeDel `elem` bs then t & baseHealth %~ (\x -> x - 10) else t
+
 -- if tank is on collectible, collect it
 collect :: MaybeT (State Game) ()
 collect = do
@@ -170,9 +184,6 @@ collectCollectible c t = t & tankHealth %~ (\h -> if h + 10 > 100 then 100 else 
 -- delete the collectible
 deleteCollectible :: Collectible -> Collectible -> Collectible
 deleteCollectible c c' = c' & collectibleCoord .~ V2 (-1) (-1)
-
-
-
 
 
 attack :: MaybeT (State Game) ()
@@ -210,13 +221,13 @@ bulletsFly g = g & bullets %~ map moveBullet
 moveBullet :: Bullet -> Bullet
 moveBullet bullet@Bullet {_bulletDirection = bDir} = bullet & bulletCoord %~ moveCoord bDir False
 
-fire :: Role -> Game -> Game
-fire SelfRole g@Game { _bullets = bs, _tank = t} = g & bullets .~ newBullet
+fire :: Role -> Game -> Game 
+fire SelfRole g@Game { _bullets = bs, _tank = t} = if not (g ^. gameOver) then g & bullets .~ newBullet else g
                                                         where
                                                             bulletCoord = moveCoord (t ^. tankDirection) False (t ^. tankCoord)
-                                                            bulletDir = t ^. tankDirection
-                                                            newBullet = initBullet bulletCoord bulletDir : bs
-fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet
+                                                            bulletDir = (t ^. tankDirection)
+                                                            newBullet = (initBullet bulletCoord bulletDir : bs)
+fire EnemyRole g@Game { _bullets = bs, _enemy = e} = if not (g ^. gameOver) then g & bullets .~ newBullet else g
                                                         where
                                                             bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
                                                             bulletDir = e ^. tankDirection

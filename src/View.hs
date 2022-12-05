@@ -201,6 +201,7 @@ drawStats g True = hLimit 20
   $ vBox [
           padTop (Pad 2) $ drawTank SelfRole (_tank g),
           str $ "Lives: " ++ show (g ^. tank ^. tankHealth),
+          str $ "Base: " ++ show (g ^. tank ^. baseHealth),
           drawInstructions True,
           drawGameOver g
           ]
@@ -208,6 +209,7 @@ drawStats g False = hLimit 20
   $ vBox [
           padTop (Pad 2) $ drawTank EnemyRole (_enemy g),
           str $ "Lives: " ++ show (g ^. enemy ^. tankHealth),
+          str $ "Base: " ++ show (g ^. enemy ^. baseHealth),
           drawInstructions False,
           drawGameOver g
   ]

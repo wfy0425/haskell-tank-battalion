@@ -41,6 +41,7 @@ initGame = Game {
               , _bullets = []
               , _selfBase = initBase SelfRole
               , _enemyBase = initBase EnemyRole
+              , _gameOver = False
               , _collectible = initCollectible (width - 3) 5
             }
 

@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
+
 module Tank where
 
 import Control.Applicative ((<|>))
@@ -23,17 +24,19 @@ import Global
 
 initTank :: Int -> Int -> Tank
 initTank xm ym = Tank {
-  _tankCoord = V2 xm ym
-  , _tankDirection = North
-  , _tankHealth = 100
-  , _tankBlinkCount = 0
-}
+            _tankCoord = V2 xm ym
+              , _tankDirection = North
+              , _tankHealth = 100
+              , _baseHealth = 200
+              , _tankBlinkCount = 0
+            } 
 
 
 data Tank = Tank {
-  _tankCoord          :: Coord
-  , _tankDirection    :: Direction
-  , _tankHealth       :: Int
+  _tankCoord :: Coord
+  , _tankDirection :: Direction
+  , _tankHealth :: Int
+  , _baseHealth :: Int
   , _tankBlinkCount   :: Int -- ^ used to blink the tank when it is hit
 } deriving (Show)
 
