@@ -7,7 +7,7 @@ import Control.Concurrent (threadDelay, forkIO)
 import Data.Maybe (fromMaybe)
 
 import Tank
-
+import Hitable
 import Brick
   ( App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
   , customMain, neverShowCursor
@@ -17,7 +17,7 @@ import Brick
   , withBorderStyle
   , str
   , attrMap, withAttr, emptyWidget, AttrName, on, fg
-  , (<+>)
+  , (<+>), getContext
   )
 import Brick.BChan (newBChan, writeBChan)
 import qualified Brick.Widgets.Border as B
@@ -33,7 +33,6 @@ import Game
 import Bullet
 -- Types
 
-data Cell = TankCell | EnemyCell | WallCell | StoneCell | BulletCell | EmptyCell 
 
 -- Handling events
 
@@ -63,7 +62,7 @@ handleEvent g _                                     = continue g
 drawUI :: Game -> [Widget Name]
 drawUI g =
   [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True),
-    drawCell WallCell
+    drawWall
   ]
 -- drawUI g =
 --   [ C.vCenter $ vLimit 22 $ hBox
@@ -80,24 +79,50 @@ drawGrid g = withBorderStyle BS.unicodeBold
   where
     rows         = [hBox $ cellsInRow r | r <- [height-1,height-2..0]]
     cellsInRow y = [drawCoord (V2 x y) | x <- [0..width-1]]
-    drawCoord    = drawCell . cellAt
-    bulletCoords = [b ^. bulletCoord | b <- g ^. bullets]
-    cellAt c
-      | c == g ^. tank ^. tankCoord || c `elem` g ^. selfBase = TankCell
-      | c == g ^. enemy ^. tankCoord || c `elem` g ^. enemyBase   = EnemyCell
-      | c `elem` g ^. walls = WallCell
-      | c `elem` g ^. stones = StoneCell
-      | c `elem` bulletCoords = BulletCell
-      | otherwise           = EmptyCell
+    drawCoord    = drawCellFromGame g
 
-drawCell :: Cell -> Widget Name
--- drawCell Snake = withAttr snakeAttr cw
-drawCell TankCell = withAttr tankAttr cw
-drawCell EnemyCell  = withAttr enemyAttr cw
-drawCell EmptyCell = withAttr emptyAttr cw
-drawCell WallCell = withAttr wallAttr cw
-drawCell BulletCell = withAttr bulletAttr cw
-drawCell StoneCell = withAttr stoneAttr cw
+drawCellFromGame :: Game -> Coord -> Widget Name
+drawCellFromGame  g c
+  | c == tankCo  = drawTank $ _tank g
+  | c == enemyCo  = drawEnemy $ _enemy g
+  | c `elem` g ^. walls = drawWall
+  | c `elem` g ^. stones = drawStone
+  | c `elem` bulletCoords = drawBullet
+  | otherwise           = drawEmpty
+  where
+      tankCo = _tankCoord $ _tank g
+      enemyCo = _tankCoord $ _enemy g
+      bulletCoords = [b ^. bulletCoord | b <- g ^. bullets]
+
+
+
+drawTank :: Tank -> Widget Name
+drawTank tank = withAttr tankAttr $ case _tankDirection tank of
+  North ->  tankNorthSquare
+  South -> tankSouthSquare
+  East -> tankEastSquare
+  West -> tankWestSquare
+
+drawEnemy :: Tank -> Widget Name
+drawEnemy tank = withAttr enemyAttr $ case _tankDirection tank of
+  North ->  tankNorthSquare
+  South -> tankSouthSquare
+  East -> tankEastSquare
+  West -> tankWestSquare
+
+drawWall :: Widget Name
+drawWall  = withAttr wallAttr cw
+
+drawBullet :: Widget Name
+drawBullet  = withAttr bulletAttr cw
+
+drawStone :: Widget Name
+drawStone  = withAttr stoneAttr cw
+
+drawEmpty :: Widget Name
+drawEmpty = withAttr emptyAttr cw
+
+
 
 cw :: Widget Name
 cw = str "  "
@@ -131,14 +156,16 @@ bulletAttr = "bulletAttr"
 
 drawStats :: Game -> Bool -> Widget Name
 drawStats g True = hLimit 20
-  $ vBox [ padTop (Pad 2) $ drawCell TankCell
-          ,str $ "Lives: " ++ show (g ^. tank ^. tankHealth)
+  $ vBox [ 
+          padTop (Pad 2) $ drawTank (_tank g),
+          str $ "Lives: " ++ show (g ^. tank ^. tankHealth)
           , drawInstructions True
           , drawGameOver g
           ]
 drawStats g False = hLimit 20
-  $ vBox [padTop (Pad 2) $ drawCell EnemyCell
-          ,str $ "Lives: " ++ show (g ^. enemy ^. tankHealth)
+  $ vBox [
+          padTop (Pad 2) $ drawEnemy (_enemy g),
+          str $ "Lives: " ++ show (g ^. enemy ^. tankHealth)
           , drawInstructions False
            , drawGameOver g
   ]
@@ -172,15 +199,30 @@ drawGameOver :: Game -> Widget Name
 drawGameOver g =
   if (isGameWon g)
     then padAll 1
-      $ vBox [  drawCell TankCell, str "Won!"
+      $ vBox [  
+        drawTank (_tank g), str "Won!",
               -- , str "r:restart"
-              , str "q:quit"
+               str "q:quit"
               ]
     else if (isGameLost g)
         then padAll 1
-          $ vBox [  drawCell EnemyCell, str "Won!"
+          $ vBox [  
+            drawEnemy (_enemy g), str "Won!",
             -- , str "r:restart"
-            , str "q:quit"
+             str "q:quit"
             ]
         else emptyWidget
-          
+
+
+
+tankNorthSquare :: Widget Name
+tankNorthSquare = vBox [str " ↑"]
+
+tankSouthSquare :: Widget Name
+tankSouthSquare = vBox [str " ↓"]
+
+tankWestSquare :: Widget Name
+tankWestSquare = vBox [str " ←"]
+
+tankEastSquare :: Widget Name
+tankEastSquare = vBox [str " →"]
