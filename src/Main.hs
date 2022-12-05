@@ -16,6 +16,8 @@ import View
 import Global
 import Game
 import Hitable
+import Collectible
+
 
 
 -- App definition
@@ -39,7 +41,11 @@ initGame = Game {
               , _bullets = []
               , _selfBase = initBase SelfRole
               , _enemyBase = initBase EnemyRole
+<<<<<<< HEAD
               , _gameState = GameReady
+=======
+              , _collectible = initCollectible (width - 3) 5
+>>>>>>> b8a6848828f24f72e43d2bbdd7fcbe83b891ffdb
             }
 
 main :: IO ()
@@ -94,7 +100,7 @@ main = do
 -- - [ ] Game pause screen
 -- - [ ] map selection screen
 -- - [ ] more instruction
--- - [ ] hit animation
+-- - [X] hit animation
 
 
 

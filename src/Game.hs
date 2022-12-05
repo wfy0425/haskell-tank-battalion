@@ -15,7 +15,7 @@ import Tank
 import Global
 import Bullet
 import Hitable
-
+import Collectible
 -- types
 data GameState = GameReady
  | GameSelecting
@@ -33,7 +33,11 @@ data Game = Game
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   , _selfBase :: Base
   , _enemyBase :: Base
+<<<<<<< HEAD
   , _gameState :: GameState
+=======
+  , _collectible :: Collectible
+>>>>>>> b8a6848828f24f72e43d2bbdd7fcbe83b891ffdb
   } deriving (Show)
 
 
@@ -65,7 +69,7 @@ moveTank SelfRole d g = do
   let c = nextCoord d (g ^. tank . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) 
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls)
     && (c `notElem` g ^. stones) && (c /= _tankCoord (_enemy g)) then
     g & tank . tankCoord .~ c & tank . tankDirection .~ d
   else
@@ -74,7 +78,7 @@ moveTank EnemyRole d g = do
   let c = nextCoord d (g ^. enemy . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) 
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls)
     && (c `notElem` g ^. stones) && (c /= _tankCoord (_tank g)) then
     g & enemy . tankCoord .~ c & enemy . tankDirection .~ d
   else
@@ -114,7 +118,7 @@ step :: Game -> Game
 step s = flip execState s . runMaybeT $ do
     -- MaybeT $ guard . isGameOver $ s
     -- die <|> MaybeT (Just <$> modify bulletsFly) 
-    hit <|> attack <|> MaybeT (Just <$> modify bulletsFly)
+    hit <|> attack <|> collect <|> blinkState <|> MaybeT (Just <$> modify bulletsFly)
 
 
 die :: MaybeT (State Game) ()
@@ -138,11 +142,42 @@ hit = do
         modifying bullets (delBullets coordsToBeDel)
         modifying walls (delWalls coordsToBeDel)
 
+blinkState :: MaybeT (State Game) ()
+blinkState = do
+    tankGetter <- use tank
+    enemyGetter <- use enemy
+    guard $ tankGetter ^. tankBlinkCount > 0 || enemyGetter ^. tankBlinkCount > 0
+    MaybeT . fmap Just $ do
+        modifying tank decreaseBlink
+        modifying enemy decreaseBlink
+
+decreaseBlink :: Tank -> Tank
+decreaseBlink t= if t ^. tankBlinkCount > 0 then t & tankBlinkCount .~ (t ^. tankBlinkCount - 1) else t
+
+
 delBullets :: [Coord] -> [Bullet] -> [Bullet]
 delBullets coordsToBeDel bs = filter (\b -> not ((b ^. bulletCoord) `elem` coordsToBeDel)) bs
 
 delWalls :: [Coord] -> [Coord] -> [Coord]
 delWalls coordsToBeDel ws = filter (\w -> not ( w `elem` coordsToBeDel) ) ws
+
+
+-- if tank is on collectible, collect it
+collect :: MaybeT (State Game) ()
+collect = do
+    tankGetter <- use tank
+    collectibleGetter <- use collectible
+    guard $ tankGetter ^. tankCoord == collectibleGetter ^. collectibleCoord
+    MaybeT . fmap Just $ do
+        modifying tank (collectCollectible collectibleGetter)
+
+-- increase tank health by 10
+collectCollectible :: Collectible -> Tank -> Tank
+collectCollectible c t = t & tankHealth %~ (\h -> if h + 10 > 100 then 100 else h + 10)
+
+
+
+
 
 attack :: MaybeT (State Game) ()
 attack = do
@@ -155,11 +190,22 @@ attack = do
         guard $ not $ null coordsToBeDel
         MaybeT . fmap Just $ do
             modifying tank (hurt coordsToBeDel)
+            modifying tank (increaseBlink coordsToBeDel)
             modifying enemy (hurt coordsToBeDel)
+            modifying enemy (increaseBlink coordsToBeDel)
             modifying bullets (delBullets coordsToBeDel)
 
 hurt :: [Coord] -> Tank -> Tank
-hurt cs t = if (t ^. tankCoord `elem` cs && t ^. tankHealth > 0) then t & tankHealth .~ (t ^. tankHealth - 10) else t
+hurt cs t= if t ^. tankCoord `elem` cs && t ^. tankHealth > 0
+  then
+    t & tankHealth .~ (t ^. tankHealth - 10)
+  else t
+
+increaseBlink :: [Coord] -> Tank -> Tank
+increaseBlink cs t= if t ^. tankCoord `elem` cs && t ^. tankHealth > 0
+  then
+    t & tankBlinkCount .~ (t ^. tankBlinkCount + 4)
+  else t
 
 -- | Get next position of bullets
 bulletsFly :: Game -> Game
@@ -172,13 +218,18 @@ fire :: Role -> Game -> Game
 fire SelfRole g@Game { _bullets = bs, _tank = t} = g & bullets .~ newBullet
                                                         where
                                                             bulletCoord = moveCoord (t ^. tankDirection) False (t ^. tankCoord)
-                                                            bulletDir = (t ^. tankDirection)
-                                                            newBullet = (initBullet bulletCoord bulletDir : bs)
+                                                            bulletDir = t ^. tankDirection
+                                                            newBullet = initBullet bulletCoord bulletDir : bs
 fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet
                                                         where
                                                             bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
+<<<<<<< HEAD
                                                             bulletDir = (e ^. tankDirection)
                                                             newBullet = (initBullet bulletCoord bulletDir : bs)
 
 setGameState :: Game -> GameState -> Game
 setGameState g s = g & gameState .~ s
+=======
+                                                            bulletDir = e ^. tankDirection
+                                                            newBullet = initBullet bulletCoord bulletDir : bs
+>>>>>>> b8a6848828f24f72e43d2bbdd7fcbe83b891ffdb
