@@ -38,11 +38,11 @@ import Bullet
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick)                       = continue $ step g
-handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ moveTank North g 
+handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ moveTank North g
 handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue $ moveTank South g
 handleEvent g (VtyEvent (V.EvKey V.KRight []))      = continue $ moveTank East g
 handleEvent g (VtyEvent (V.EvKey V.KLeft []))       = continue $ moveTank West g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))         = continue $ moveEnemy North g 
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))         = continue $ moveEnemy North g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveEnemy South g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))      = continue $ moveEnemy East g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveEnemy West g
@@ -53,8 +53,8 @@ handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveEnemy
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
 handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = halt g
-handleEvent g (VtyEvent (V.EvKey V.KEnter []))         = continue $ fire SelfRole g 
-handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))      = continue $ fire EnemyRole g 
+handleEvent g (VtyEvent (V.EvKey V.KEnter []))         = continue $ fire SelfRole g
+handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))      = continue $ fire EnemyRole g
 handleEvent g _                                     = continue g
 
 -- Drawing
@@ -83,32 +83,34 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
-  | c == tankCo  = drawTank $ _tank g
-  | c == enemyCo  = drawEnemy $ _enemy g
-  | c `elem` g ^. walls = drawWall
-  | c `elem` g ^. stones = drawStone
-  | c `elem` bulletCoords = drawBullet
-  | otherwise           = drawEmpty
+  | c == tankCo               = drawTank $ _tank g
+  | c == enemyCo              = drawEnemy $ _enemy g
+  | c `elem` g ^. walls       = drawWall
+  | c `elem` g ^. stones      = drawStone
+  | c `elem` bulletCoords     = drawBullet
+  | c `elem` g ^. selfBase    = drawSelfBase
+  | c `elem` g ^. enemyBase   = drawEnemyBase
+  | otherwise                 = drawEmpty
   where
-      tankCo = _tankCoord $ _tank g
-      enemyCo = _tankCoord $ _enemy g
-      bulletCoords = [b ^. bulletCoord | b <- g ^. bullets]
+      tankCo                  = _tankCoord $ _tank g
+      enemyCo                 = _tankCoord $ _enemy g
+      bulletCoords            = [b ^. bulletCoord | b <- g ^. bullets]
 
 
 
 drawTank :: Tank -> Widget Name
 drawTank tank = withAttr tankAttr $ case _tankDirection tank of
   North ->  tankNorthSquare
-  South -> tankSouthSquare
-  East -> tankEastSquare
-  West -> tankWestSquare
+  South ->  tankSouthSquare
+  East  ->  tankEastSquare
+  West  ->  tankWestSquare
 
 drawEnemy :: Tank -> Widget Name
 drawEnemy tank = withAttr enemyAttr $ case _tankDirection tank of
   North ->  tankNorthSquare
-  South -> tankSouthSquare
-  East -> tankEastSquare
-  West -> tankWestSquare
+  South ->  tankSouthSquare
+  East  ->  tankEastSquare
+  West  ->  tankWestSquare
 
 drawWall :: Widget Name
 drawWall  = withAttr wallAttr cw
@@ -122,7 +124,11 @@ drawStone  = withAttr stoneAttr cw
 drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
+drawSelfBase :: Widget Name
+drawSelfBase = withAttr selfBaseAttr cw
 
+drawEnemyBase :: Widget Name
+drawEnemyBase = withAttr enemyBaseAttr cw
 
 cw :: Widget Name
 cw = str "  "
@@ -133,20 +139,24 @@ star = str "O"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-  [ (tankAttr, V.red `on` V.red), 
+  [ (tankAttr, V.red `on` V.red),
    (enemyAttr, V.blue `on` V.blue),
    (wallAttr, V.white `on` V.white),
    (stoneAttr, V.brightYellow `on` V.brightYellow),
-   (bulletAttr, V.green `on` V.green)
+   (bulletAttr, V.green `on` V.green),
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
+  (selfBaseAttr, V.red `on` V.red),
+  (enemyBaseAttr, V.blue `on` V.blue)
   ]
 
-tankAttr, emptyAttr :: AttrName
+tankAttr, enemyAttr, wallAttr, stoneAttr, emptyAttr, selfBaseAttr, enemyBaseAttr :: AttrName
 tankAttr = "tankAttr"
 enemyAttr = "enemyAttr"
 wallAttr = "wallAttr"
 stoneAttr = "stoneAttr"
 emptyAttr = "emptyAttr"
+selfBaseAttr = "selfBaseAttr"
+enemyBaseAttr = "enemyBaseAttr"
 
 gameOverAttr :: AttrName
 gameOverAttr = "gameOver"
@@ -156,18 +166,18 @@ bulletAttr = "bulletAttr"
 
 drawStats :: Game -> Bool -> Widget Name
 drawStats g True = hLimit 20
-  $ vBox [ 
+  $ vBox [
           padTop (Pad 2) $ drawTank (_tank g),
-          str $ "Lives: " ++ show (g ^. tank ^. tankHealth)
-          , drawInstructions True
-          , drawGameOver g
+          str $ "Lives: " ++ show (g ^. tank ^. tankHealth),
+          drawInstructions True,
+          drawGameOver g
           ]
 drawStats g False = hLimit 20
   $ vBox [
           padTop (Pad 2) $ drawEnemy (_enemy g),
-          str $ "Lives: " ++ show (g ^. enemy ^. tankHealth)
-          , drawInstructions False
-           , drawGameOver g
+          str $ "Lives: " ++ show (g ^. enemy ^. tankHealth),
+          drawInstructions False,
+          drawGameOver g
   ]
 
 -- drawStats :: Game -> Widget Name
@@ -196,22 +206,18 @@ drawInstructions False = padAll 1
          ]
 
 drawGameOver :: Game -> Widget Name
-drawGameOver g =
-  if (isGameWon g)
-    then padAll 1
-      $ vBox [  
-        drawTank (_tank g), str "Won!",
-              -- , str "r:restart"
-               str "q:quit"
-              ]
-    else if (isGameLost g)
-        then padAll 1
-          $ vBox [  
-            drawEnemy (_enemy g), str "Won!",
+drawGameOver g
+  | isGameWon g = padAll 1 $ vBox [
+      drawTank (_tank g), str "Won!",
             -- , str "r:restart"
              str "q:quit"
             ]
-        else emptyWidget
+  | isGameLost g = padAll 1 $ vBox [
+      drawEnemy (_enemy g), str "Won!",
+      -- , str "r:restart"
+       str "q:quit"
+      ]
+  | otherwise = emptyWidget
 
 
 

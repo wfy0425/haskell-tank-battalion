@@ -30,8 +30,8 @@ data Game = Game
   , _walls  :: [Wall]       -- ^ location of the walls
   , _stones :: [Stone]      -- ^ location of the stones
   , _bullets :: [Bullet]      -- ^ obj of the bullets
-  , _selfBase :: [Coord]
-  , _enemyBase :: [Coord]
+  , _selfBase :: Base
+  , _enemyBase :: Base
   } deriving (Show)
 
 
