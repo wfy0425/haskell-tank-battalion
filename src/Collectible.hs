@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Collectible 
     ( Collectible(..)
-    , initCollectible, collectibleCoord, healthMod 
+    , initCollectible, collectibleCoord, coordinateList, coordinateIndex, health
     ) where
 
 import Control.Applicative ((<|>))
@@ -26,12 +26,16 @@ import Global
 initCollectible :: Int -> Int -> Collectible
 initCollectible xm ym = Collectible {
             _collectibleCoord = V2 xm ym
-            , _healthMod = 20
+            , _coordinateList = [(V2 3 5), (V2 18 13), (V2 6 4), (V2 11 15), (V2 19 19), (V2 0 0)]
+            , _coordinateIndex = 0
+            , _health = 20
             }
 
 data Collectible = Collectible {
     _collectibleCoord :: Coord
-    , _healthMod :: Int
+    , _coordinateList :: [Coord]
+    , _coordinateIndex :: Int
+    , _health :: Int
 } deriving (Show)
 
 makeLenses ''Collectible
