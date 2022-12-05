@@ -38,6 +38,7 @@ initGame = Game {
               , _enemy = initTank 2 (height-3)
               , _walls = initWalls
               , _stones = initStones
+              , _lakes = initLakes
               , _bullets = []
               , _selfBase = initBase SelfRole
               , _enemyBase = initBase EnemyRole

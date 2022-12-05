@@ -94,6 +94,7 @@ drawCellFromGame  g c
   | c == enemyCo              = drawTank EnemyRole $ _enemy g
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
+  | c `elem` g ^. lakes       = drawLake
   | c `elem` bulletCoords     = drawBullet
   | c `elem` g ^. selfBase    = drawSelfBase
   | c `elem` g ^. enemyBase   = drawEnemyBase
@@ -139,6 +140,9 @@ drawBullet  = withAttr bulletAttr cw
 drawStone :: Widget Name
 drawStone  = withAttr stoneAttr cw
 
+drawLake :: Widget Name
+drawLake = withAttr lakeAttr cw
+
 drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
@@ -164,6 +168,7 @@ theMap = attrMap V.defAttr
    (enemyAttr, V.black `on` V.blue),
    (wallAttr, V.black `on` V.white),
    (stoneAttr, V.black `on` V.brightYellow),
+   (lakeAttr, V.black `on` lakeColor),
    (bulletAttr, V.black `on` V.green),
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
   (selfBaseAttr, V.black `on` V.red),
@@ -177,6 +182,7 @@ tankAttr = "tankAttr"
 enemyAttr = "enemyAttr"
 wallAttr = "wallAttr"
 stoneAttr = "stoneAttr"
+lakeAttr = "lakeAttr"
 emptyAttr = "emptyAttr"
 selfBaseAttr = "selfBaseAttr"
 enemyBaseAttr = "enemyBaseAttr"
@@ -282,6 +288,9 @@ tankEastSquare = vBox [str " →"]
 
 welcomeCharColor :: V.Color
 welcomeCharColor = V.rgbColor 253 126 125
+
+lakeColor :: V.Color
+lakeColor = V.rgbColor 0 255 255
 
 drawWelcome :: Game -> [Widget Name]
 drawWelcome g = [ C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcomeText1 <=> welcomeText2)] ]

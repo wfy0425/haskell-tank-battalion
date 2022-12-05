@@ -14,6 +14,8 @@ type Wall = Coord
 
 type Stone = Coord
 
+type Lake = Coord
+
 type Base = [Coord]
 
 initWalls :: [Wall]
@@ -52,3 +54,6 @@ initBase EnemyRole = [V2 1 1, V2 1 2, V2 2 1, V2 2 2]
 
 initWall :: Coord -> Wall
 initWall c = c
+
+initLakes :: [Stone]
+initLakes = [V2 4 4, V2 4 5, V2 5 4, V2 5 5, V2 4 10, V2 4 11, V2 5 10, V2 5 11, V2 10 4, V2 10 5, V2 11 4, V2 11 5, V2 10 10, V2 10 11, V2 11 10, V2 11 11]
