@@ -93,7 +93,7 @@ main = do
 -- - [ ] Game pause screen
 -- - [ ] map selection screen
 -- - [ ] more instruction
--- - [ ] hit animation
+-- - [X] hit animation
 
 
 
