@@ -37,25 +37,27 @@ import Bullet
 -- Handling events
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEvent g (AppEvent Tick)                       = continue $ step g
-handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ moveTank North g
-handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue $ moveTank South g
-handleEvent g (VtyEvent (V.EvKey V.KRight []))      = continue $ moveTank East g
-handleEvent g (VtyEvent (V.EvKey V.KLeft []))       = continue $ moveTank West g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))         = continue $ moveEnemy North g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveEnemy South g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))      = continue $ moveEnemy East g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveEnemy West g
+handleEvent g (AppEvent Tick)                             = continue $ step g
+handleEvent g (VtyEvent (V.EvKey V.KUp []))               = continue $ moveTank SelfRole North g
+handleEvent g (VtyEvent (V.EvKey V.KDown []))             = continue $ moveTank SelfRole South g
+handleEvent g (VtyEvent (V.EvKey V.KRight []))            = continue $ moveTank SelfRole East g
+handleEvent g (VtyEvent (V.EvKey V.KLeft []))             = continue $ moveTank SelfRole West g
+
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))       = continue $ moveTank EnemyRole North g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveTank EnemyRole South g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))       = continue $ moveTank EnemyRole East g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveTank EnemyRole West g
+
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') [])) = continue $ turn North g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') [])) = continue $ turn South g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') [])) = continue $ turn East g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'h') [])) = continue $ turn West g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
-handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = halt g
-handleEvent g (VtyEvent (V.EvKey V.KEnter []))         = continue $ fire SelfRole g
-handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))      = continue $ fire EnemyRole g
-handleEvent g _                                     = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') []))       = halt g
+handleEvent g (VtyEvent (V.EvKey V.KEsc []))              = halt g
+handleEvent g (VtyEvent (V.EvKey V.KEnter []))            = continue $ fire SelfRole g
+handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))       = continue $ fire EnemyRole g
+handleEvent g _                                           = continue g
 
 -- Drawing
 

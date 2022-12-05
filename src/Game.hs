@@ -2,11 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Game (
-    Game(..)
-    , tank, enemy, walls, stones, bullets, selfBase, enemyBase
-    , isGameLost, isGameOver, isGameWon, moveEnemy, moveTank, fire, step
-) where
+module Game where
 
 import Control.Applicative ((<|>))
 import Control.Monad.Trans.Maybe
@@ -58,8 +54,8 @@ nextCoord d c = do
       West -> V2 (x - 1) y
       East -> V2 (x + 1) y 
 
-moveTank :: Direction -> Game -> Game
-moveTank d g = do
+moveTank :: Role -> Direction -> Game -> Game
+moveTank SelfRole d g = do
   let c = nextCoord d (g ^. tank . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
@@ -67,9 +63,7 @@ moveTank d g = do
     g & tank . tankCoord .~ c & tank . tankDirection .~ d
   else
     g & tank . tankDirection .~ d
-  
-moveEnemy :: Direction -> Game -> Game
-moveEnemy d g = do
+moveTank EnemyRole d g = do
   let c = nextCoord d (g ^. enemy . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
@@ -77,6 +71,7 @@ moveEnemy d g = do
     g & enemy . tankCoord .~ c & enemy . tankDirection .~ d
   else
     g & enemy . tankDirection .~ d
+  
 
 isGameOver :: Game -> Bool
 isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0
