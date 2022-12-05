@@ -17,7 +17,12 @@ import Bullet
 import Hitable
 
 -- types
-
+data GameState = GameReady
+ | GameSelecting
+ | GameRunning
+ | GameFinished
+ | GameAborted
+ deriving(Show, Eq)
 
 data Game = Game
   {
@@ -28,6 +33,7 @@ data Game = Game
   , _bullets :: [Bullet]      -- ^ obj of the bullets
   , _selfBase :: Base
   , _enemyBase :: Base
+  , _gameState :: GameState
   } deriving (Show)
 
 
@@ -173,3 +179,6 @@ fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet
                                                             bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
                                                             bulletDir = (e ^. tankDirection)
                                                             newBullet = (initBullet bulletCoord bulletDir : bs)
+
+setGameState :: Game -> GameState -> Game
+setGameState g s = g & gameState .~ s
