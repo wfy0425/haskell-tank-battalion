@@ -153,14 +153,19 @@ drawEnemyBase :: Widget Name
 drawEnemyBase = withAttr enemyBaseAttr $ str " ⚑ "
 
 drawCollectible :: Collectible -> Widget Name
-drawCollectible cc = withAttr collectibleAttr amount
+drawCollectible cc = if cc ^. health == 20 
+            then withAttr collectibleAttr amount20
+            else withAttr collectibleAttr amount50
+
 
 cw :: Widget Name
 cw = str "   "
 
-amount :: Widget Name
-amount = str " 20"
+amount20 :: Widget Name
+amount20 = str "+20"
 
+amount50 :: Widget Name
+amount50 = str "+50"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
