@@ -31,6 +31,8 @@ import Linear.V2 (V2(..))
 import Global
 import Game
 import Bullet
+import Data.Ratio
+import Control.Lens.Operators
 -- Types
 
 
@@ -89,8 +91,8 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
-  | c == tankCo               = drawTank $ _tank g
-  | c == enemyCo              = drawEnemy $ _enemy g
+  | c == tankCo               = drawTank SelfRole $ _tank g
+  | c == enemyCo              = drawTank EnemyRole $ _enemy g
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
   | c `elem` bulletCoords     = drawBullet
@@ -104,19 +106,29 @@ drawCellFromGame  g c
 
 
 
-drawTank :: Tank -> Widget Name
-drawTank tank = withAttr tankAttr $ case _tankDirection tank of
-  North ->  tankNorthSquare
-  South ->  tankSouthSquare
-  East  ->  tankEastSquare
-  West  ->  tankWestSquare
+drawTank :: Role -> Tank -> Widget Name
+drawTank SelfRole tank = do
+  if _tankBlinkCount tank >0 && (_tankBlinkCount tank % 2) == 1
+  then drawEmpty
+  else drawTank' SelfRole tank
+drawTank EnemyRole tank =
+  if _tankBlinkCount tank >0 && (_tankBlinkCount tank % 2) == 1
+  then drawEmpty
+  else drawTank' EnemyRole tank
 
-drawEnemy :: Tank -> Widget Name
-drawEnemy tank = withAttr enemyAttr $ case _tankDirection tank of
-  North ->  tankNorthSquare
-  South ->  tankSouthSquare
-  East  ->  tankEastSquare
-  West  ->  tankWestSquare
+drawTank' :: Role -> Tank -> Widget Name
+drawTank' SelfRole tank =
+  withAttr tankAttr $ case _tankDirection tank of
+    North ->  tankNorthSquare
+    South ->  tankSouthSquare
+    East  ->  tankEastSquare
+    West  ->  tankWestSquare
+drawTank' EnemyRole tank =
+  withAttr enemyAttr $ case _tankDirection tank of
+    North ->  tankNorthSquare
+    South ->  tankSouthSquare
+    East  ->  tankEastSquare
+    West  ->  tankWestSquare
 
 drawWall :: Widget Name
 drawWall  = withAttr wallAttr cw
@@ -173,14 +185,14 @@ bulletAttr = "bulletAttr"
 drawStats :: Game -> Bool -> Widget Name
 drawStats g True = hLimit 20
   $ vBox [
-          padTop (Pad 2) $ drawTank (_tank g),
+          padTop (Pad 2) $ drawTank SelfRole (_tank g),
           str $ "Lives: " ++ show (g ^. tank ^. tankHealth),
           drawInstructions True,
           drawGameOver g
           ]
 drawStats g False = hLimit 20
   $ vBox [
-          padTop (Pad 2) $ drawEnemy (_enemy g),
+          padTop (Pad 2) $ drawTank EnemyRole (_enemy g),
           str $ "Lives: " ++ show (g ^. enemy ^. tankHealth),
           drawInstructions False,
           drawGameOver g
@@ -214,12 +226,12 @@ drawInstructions False = padAll 1
 drawGameOver :: Game -> Widget Name
 drawGameOver g
   | isGameWon g = padAll 1 $ vBox [
-      drawTank (_tank g), str "Won!",
+      drawTank SelfRole (_tank g), str "Won!",
             -- , str "r:restart"
              str "q:quit"
             ]
   | isGameLost g = padAll 1 $ vBox [
-      drawEnemy (_enemy g), str "Won!",
+      drawTank EnemyRole (_enemy g), str "Won!",
       -- , str "r:restart"
        str "q:quit"
       ]
