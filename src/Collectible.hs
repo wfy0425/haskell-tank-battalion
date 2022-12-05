@@ -1,8 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
-
-module Tank where
+module Collectible 
+    ( Collectible(..)
+    , initCollectible, collectibleCoord, healthMod 
+    ) where
 
 import Control.Applicative ((<|>))
 import Control.Monad (guard)
@@ -20,27 +22,17 @@ import System.Random (Random(..), newStdGen)
 import Global
 
 
--- Types
 
-initTank :: Int -> Int -> Tank
-initTank xm ym = Tank {
-            _tankCoord = V2 xm ym
-              , _tankDirection = North
-              , _tankHealth = 100
-              , _baseHealth = 200
-              , _tankBlinkCount = 0
-            } 
+initCollectible :: Int -> Int -> Collectible
+initCollectible xm ym = Collectible {
+            _collectibleCoord = V2 xm ym
+            , _healthMod = 20
+            }
 
-
-data Tank = Tank {
-  _tankCoord :: Coord
-  , _tankDirection :: Direction
-  , _tankHealth :: Int
-  , _baseHealth :: Int
-  , _tankBlinkCount   :: Int -- ^ used to blink the tank when it is hit
+data Collectible = Collectible {
+    _collectibleCoord :: Coord
+    , _healthMod :: Int
 } deriving (Show)
 
-
-makeLenses ''Tank
-
+makeLenses ''Collectible
 

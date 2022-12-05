@@ -31,31 +31,40 @@ import Linear.V2 (V2(..))
 import Global
 import Game
 import Bullet
+import Collectible
+import Data.Ratio
+import Control.Lens.Operators
 -- Types
 
 
 -- Handling events
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEvent g (AppEvent Tick)                       = continue $ step g
-handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ moveTank North g
-handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue $ moveTank South g
-handleEvent g (VtyEvent (V.EvKey V.KRight []))      = continue $ moveTank East g
-handleEvent g (VtyEvent (V.EvKey V.KLeft []))       = continue $ moveTank West g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))         = continue $ moveEnemy North g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveEnemy South g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))      = continue $ moveEnemy East g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveEnemy West g
+handleEvent g (AppEvent Tick)                             = continue $ step g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'i') []))               = continue $ moveTank SelfRole North g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') []))             = continue $ moveTank SelfRole West g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') []))             = continue $ moveTank SelfRole South g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') []))            = continue $ moveTank SelfRole East g
+
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'o') []))       = continue $ buildWall SelfRole g
+
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))       = continue $ moveTank EnemyRole North g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveTank EnemyRole West g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveTank EnemyRole South g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))       = continue $ moveTank EnemyRole East g
+
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') []))       = continue $ buildWall EnemyRole g
+
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') [])) = continue $ turn North g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') [])) = continue $ turn South g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') [])) = continue $ turn East g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'h') [])) = continue $ turn West g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
-handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = halt g
-handleEvent g (VtyEvent (V.EvKey V.KEnter []))         = continue $ fire SelfRole g
-handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))      = continue $ fire EnemyRole g
-handleEvent g _                                     = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') []))       = halt g
+handleEvent g (VtyEvent (V.EvKey V.KEsc []))              = halt g
+handleEvent g (VtyEvent (V.EvKey V.KEnter []))            = continue $ fire SelfRole g
+handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))       = continue $ fire EnemyRole g
+handleEvent g _                                           = continue g
 
 -- Drawing
 
@@ -83,8 +92,9 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
-  | c == tankCo               = drawTank $ _tank g
-  | c == enemyCo              = drawEnemy $ _enemy g
+  | c == collectCo            = drawCollectible $ _collectible g 
+  | c == tankCo               = drawTank SelfRole $ _tank g
+  | c == enemyCo              = drawTank EnemyRole $ _enemy g
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
   | c `elem` bulletCoords     = drawBullet
@@ -94,23 +104,34 @@ drawCellFromGame  g c
   where
       tankCo                  = _tankCoord $ _tank g
       enemyCo                 = _tankCoord $ _enemy g
+      collectCo               = _collectibleCoord $ _collectible g
       bulletCoords            = [b ^. bulletCoord | b <- g ^. bullets]
 
 
 
-drawTank :: Tank -> Widget Name
-drawTank tank = withAttr tankAttr $ case _tankDirection tank of
-  North ->  tankNorthSquare
-  South ->  tankSouthSquare
-  East  ->  tankEastSquare
-  West  ->  tankWestSquare
+drawTank :: Role -> Tank -> Widget Name
+drawTank SelfRole tank = do
+  if _tankBlinkCount tank >0 && (_tankBlinkCount tank % 2) == 1
+  then drawEmpty
+  else drawTank' SelfRole tank
+drawTank EnemyRole tank =
+  if _tankBlinkCount tank >0 && (_tankBlinkCount tank % 2) == 1
+  then drawEmpty
+  else drawTank' EnemyRole tank
 
-drawEnemy :: Tank -> Widget Name
-drawEnemy tank = withAttr enemyAttr $ case _tankDirection tank of
-  North ->  tankNorthSquare
-  South ->  tankSouthSquare
-  East  ->  tankEastSquare
-  West  ->  tankWestSquare
+drawTank' :: Role -> Tank -> Widget Name
+drawTank' SelfRole tank =
+  withAttr tankAttr $ case _tankDirection tank of
+    North ->  tankNorthSquare
+    South ->  tankSouthSquare
+    East  ->  tankEastSquare
+    West  ->  tankWestSquare
+drawTank' EnemyRole tank =
+  withAttr enemyAttr $ case _tankDirection tank of
+    North ->  tankNorthSquare
+    South ->  tankSouthSquare
+    East  ->  tankEastSquare
+    West  ->  tankWestSquare
 
 drawWall :: Widget Name
 drawWall  = withAttr wallAttr cw
@@ -130,11 +151,18 @@ drawSelfBase = withAttr selfBaseAttr cw
 drawEnemyBase :: Widget Name
 drawEnemyBase = withAttr enemyBaseAttr cw
 
+drawCollectible :: Collectible -> Widget Name
+drawCollectible cc = withAttr collectibleAttr amount
+
 cw :: Widget Name
 cw = str "  "
 
+
 star :: Widget Name
 star = str "O"
+
+amount :: Widget Name
+amount = str "20"
 
 
 theMap :: AttrMap
@@ -146,7 +174,8 @@ theMap = attrMap V.defAttr
    (bulletAttr, V.black `on` V.green),
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
   (selfBaseAttr, V.black `on` V.red),
-  (enemyBaseAttr, V.black `on` V.blue)
+  (enemyBaseAttr, V.black `on` V.blue),
+  (collectibleAttr, V.black `on` V.yellow)
   ]
 
 tankAttr, enemyAttr, wallAttr, stoneAttr, emptyAttr, selfBaseAttr, enemyBaseAttr :: AttrName
@@ -158,6 +187,9 @@ emptyAttr = "emptyAttr"
 selfBaseAttr = "selfBaseAttr"
 enemyBaseAttr = "enemyBaseAttr"
 
+collectibleAttr :: AttrName
+collectibleAttr = "collectibleAttr"
+
 gameOverAttr :: AttrName
 gameOverAttr = "gameOver"
 
@@ -167,7 +199,7 @@ bulletAttr = "bulletAttr"
 drawStats :: Game -> Bool -> Widget Name
 drawStats g True = hLimit 20
   $ vBox [
-          padTop (Pad 2) $ drawTank (_tank g),
+          padTop (Pad 2) $ drawTank SelfRole (_tank g),
           str $ "Lives: " ++ show (g ^. tank ^. tankHealth),
           str $ "Base: " ++ show (g ^. tank ^. baseHealth),
           drawInstructions True,
@@ -175,7 +207,7 @@ drawStats g True = hLimit 20
           ]
 drawStats g False = hLimit 20
   $ vBox [
-          padTop (Pad 2) $ drawEnemy (_enemy g),
+          padTop (Pad 2) $ drawTank EnemyRole (_enemy g),
           str $ "Lives: " ++ show (g ^. enemy ^. tankHealth),
           str $ "Base: " ++ show (g ^. enemy ^. baseHealth),
           drawInstructions False,
@@ -199,7 +231,7 @@ drawStats g False = hLimit 20
 
 drawInstructions :: Bool -> Widget Name
 drawInstructions True = padAll 1
-  $ vBox [  str "↑: up" , str "↓: down" , str"←: left", str"→: right"
+  $ vBox [  str "i: up" , str "k: down" , str"j: left", str"l: right"
             ,str "enter: shoot"
          ]
 drawInstructions False = padAll 1
@@ -210,12 +242,12 @@ drawInstructions False = padAll 1
 drawGameOver :: Game -> Widget Name
 drawGameOver g
   | isGameWon g = padAll 1 $ vBox [
-      drawTank (_tank g), str "Won!",
+      drawTank SelfRole (_tank g), str "Won!",
             -- , str "r:restart"
              str "q:quit"
             ]
   | isGameLost g = padAll 1 $ vBox [
-      drawEnemy (_enemy g), str "Won!",
+      drawTank EnemyRole (_enemy g), str "Won!",
       -- , str "r:restart"
        str "q:quit"
       ]

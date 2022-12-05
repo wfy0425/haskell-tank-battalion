@@ -16,6 +16,8 @@ import View
 import Global
 import Game
 import Hitable
+import Collectible
+
 
 
 -- App definition
@@ -40,6 +42,7 @@ initGame = Game {
               , _selfBase = initBase SelfRole
               , _enemyBase = initBase EnemyRole
               , _gameOver = False
+              , _collectible = initCollectible (width - 3) 5
             }
 
 main :: IO ()
@@ -74,15 +77,29 @@ main = do
 -- - [X] Add game quit
 -- - [ ] Add game menu
 -- - [ ] UI
--- - [ ] Add levels
+-- - [ ] Add maps
+-- - [X] build walls
+
 -- - [ ] items
+-- - - [ ] armor
+-- - - [ ] gain health
+-- - - [ ] big bullet
+-- - - [ ] powerful bullet
+
+
+-- - [ ] add water
+-- - - [ ] add enchanced item to cross water 
 
 -- [ ] UI
 -- - [ ] Welcome screen
 -- - [ ] Game over screen
 -- - [ ] Game win screen
 -- - [ ] Game pause screen
--- - [ ] level selection screen
+-- - [ ] map selection screen
+-- - [ ] more instruction
+-- - [X] hit animation
+
+
 
 
 
