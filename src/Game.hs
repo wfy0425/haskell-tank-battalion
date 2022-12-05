@@ -92,26 +92,14 @@ step :: Game -> Game
 step s = flip execState s . runMaybeT $ do 
     -- MaybeT $ guard . isGameOver $ s
     -- die <|> MaybeT (Just <$> modify bulletsFly) 
-    hit <|> MaybeT (Just <$> modify bulletsFly) 
+    hit <|> attack <|> MaybeT (Just <$> modify bulletsFly) 
 
 
 die :: MaybeT (State Game) ()
 die = error "to fill"
 
--- collision :: MaybeT (State Game) ()
--- collision = do
---     MaybeT . fmap guard $ (==) <$> (bulletCoords <$> get) <*> ([use tank] ++ [use enemy] ++ use walls ++ use stones)
---     MaybeT . fmap Just $ do
---     modifying score (+ 10)
---     get >>= \g -> modifying snake (nextHead g <|)
---     nextFood
-
-
 -- bulletCoords :: Game -> [Coord] 
 -- bulletCoords g = [ c | c <- g ^. bullets ]
-
--- collision :: MaybeT (State Game) ()
--- collision = do hit <|>  attack
 
 hit :: MaybeT (State Game) ()
 hit = do
@@ -124,8 +112,6 @@ hit = do
                                              b ^. bulletCoord  == w || b ^. bulletCoord == s ]
 
     guard $ not $ null coordsToBeDel
-    -- MaybeT $ (guard (length coordsToBeDel /= 0))
-
     MaybeT . fmap Just $ do
         modifying bullets (delBullets coordsToBeDel)
         modifying walls (delWalls coordsToBeDel)
@@ -136,16 +122,19 @@ delBullets coordsToBeDel bs = filter (\b -> not ((b ^. bulletCoord) `elem` coord
 delWalls :: [Coord] -> [Coord] -> [Coord]
 delWalls coordsToBeDel ws = filter (\w -> not ( w `elem` coordsToBeDel) ) ws
 
--- attack :: State Game ()
--- attack = do 
---         g <- get
---         let coordsToBeDel = [ b ^. bulletCoord | b <- g ^. bullets
---                                                 b ^. bulletCoord  == g ^. tank . tankCoord || b ^. bulletCoord == s ^. enemy . tankCoord ]
---         g & bullets %~ delBullets coordsToBeDel
---         g & tank %~ hurt coordsToBeDel
---         g & enemy %~ hurt coordsToBeDel
---         return g
-
+attack :: MaybeT (State Game) ()
+attack = do 
+        bulletGetter <- use bullets
+        tankGetter <- use tank
+        enemyGetter <- use enemy
+        let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter,
+                                                b ^. bulletCoord  == tankGetter ^. tankCoord 
+                                                || b ^. bulletCoord == enemyGetter ^. tankCoord ]
+        guard $ not $ null coordsToBeDel
+        MaybeT . fmap Just $ do
+            modifying tank (hurt coordsToBeDel)
+            modifying enemy (hurt coordsToBeDel)
+            modifying bullets (delBullets coordsToBeDel)
 
 hurt :: [Coord] -> Tank -> Tank
 hurt cs t = if t ^. tankCoord `elem` cs then t & tankHealth .~ (t ^. tankHealth - 10) else t
