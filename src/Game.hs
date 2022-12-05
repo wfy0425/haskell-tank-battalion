@@ -12,7 +12,7 @@ import Control.Monad.Trans.State
 import Control.Monad (guard)
 import Control.Lens hiding ((<|), (|>), (:>), (:<))
 import Linear.V2 (V2(..), _x, _y)
-
+import System.Random
 import Tank
 import Global
 import Bullet
@@ -175,19 +175,33 @@ reduceBaseHealth coordsToBeDel bs t = if coordsToBeDel `elem` bs then t & baseHe
 collect :: MaybeT (State Game) ()
 collect = do
     tankGetter <- use tank
+    enemyGetter <- use enemy
     collectibleGetter <- use collectible
-    guard $ tankGetter ^. tankCoord == collectibleGetter ^. collectibleCoord
+    guard $ (tankGetter ^. tankCoord == collectibleGetter ^. collectibleCoord) || (enemyGetter ^. tankCoord == collectibleGetter ^. collectibleCoord)
     MaybeT . fmap Just $ do
         modifying tank (collectCollectible collectibleGetter)
+        modifying collectible (addCollectible collectibleGetter)
         modifying collectible (deleteCollectible collectibleGetter)
+        modifying collectible (lastCollectible collectibleGetter)
 
--- increase tank health by 10
+
+-- increase tank health by 20
 collectCollectible :: Collectible -> Tank -> Tank
-collectCollectible c t = t & tankHealth %~ (\h -> if h + 10 > 100 then 100 else h + 10)
+collectCollectible c t = t & tankHealth %~ (\h -> if h + (c ^. health) > 100 then 100 else h + (c ^. health))
 
--- delete the collectible
+-- the last collectible is has 30 additional health
+lastCollectible :: Collectible -> Collectible -> Collectible
+lastCollectible c c' = if c ^. coordinateIndex == 4  then c' & health .~ 50 else c'
+
+-- increase collectible index by 1
+addCollectible :: Collectible -> Collectible -> Collectible
+addCollectible c c' = c' & coordinateIndex .~ (c ^. coordinateIndex + 1)
+
+-- update collectible position according to coordinate list
 deleteCollectible :: Collectible -> Collectible -> Collectible
-deleteCollectible c c' = c' & collectibleCoord .~ V2 (-1) (-1)
+deleteCollectible c c' = if c ^. coordinateIndex > 5 then c' & collectibleCoord .~ V2 (-1) (-1)
+                         else c' & collectibleCoord .~ ((c ^. coordinateList) !! (c ^. coordinateIndex))
+
 
 
 attack :: MaybeT (State Game) ()
@@ -236,3 +250,8 @@ fire EnemyRole g@Game { _bullets = bs, _enemy = e} = if not (g ^. gameOver) then
                                                             bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
                                                             bulletDir = e ^. tankDirection
                                                             newBullet = initBullet bulletCoord bulletDir : bs
+
+-- TODO: Add ammo pack which increases the damage of the bullet, may be need to add a new type of bullet
+-- TODO: (Maybe) add mine which explodes when tank is near
+-- TODO: Investigate bullet speed to see if it is possible to make it faster
+    
