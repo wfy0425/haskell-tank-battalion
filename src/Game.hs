@@ -32,8 +32,8 @@ data Game = Game
   , _enemyBase :: Base
   , _gameOver :: Bool
   , _collectible :: Collectible
+  , _gameState :: GameState
   } deriving (Show)
-
 
 makeLenses ''Game
 
@@ -97,6 +97,9 @@ buildWall EnemyRole g@Game{ _walls = ws} = do
     g & walls .~ (initWall c : ws)
   else
     g & walls .~ ws
+
+setGameState :: Game -> GameState -> Game
+setGameState g s = g & gameState .~ s
 
 isGameOver :: Game -> Bool
 isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0 || g ^. tank . baseHealth <= 0 || g ^. enemy . baseHealth <= 0

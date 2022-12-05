@@ -18,6 +18,7 @@ import Brick
   , str
   , attrMap, withAttr, emptyWidget, AttrName, on, fg
   , (<+>), getContext
+  , (<=>) 
   )
 import Brick.BChan (newBChan, writeBChan)
 import qualified Brick.Widgets.Border as B
@@ -60,6 +61,7 @@ handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') []))       = continue $ buildWall
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') [])) = continue $ turn East g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'h') [])) = continue $ turn West g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'p') []))       = continue $ setGameState g GameRunning
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') []))       = halt g
 handleEvent g (VtyEvent (V.EvKey V.KEsc []))              = halt g
 handleEvent g (VtyEvent (V.EvKey V.KEnter []))            = continue $ fire SelfRole g
@@ -69,17 +71,9 @@ handleEvent g _                                           = continue g
 -- Drawing
 
 drawUI :: Game -> [Widget Name]
-drawUI g =
-  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True),
-    drawWall
-  ]
--- drawUI g =
---   [ C.vCenter $ vLimit 22 $ hBox
---       [ padLeft Max $ padRight (Pad 2) $ drawStats (ui ^. game)
---       , drawGrid g
---       , padRight Max $ padLeft (Pad 2) $ drawInfo (ui ^. game)
---       ]
---   ]
+drawUI g = case g^.gameState of
+  GameReady -> drawWelcome g
+  _ ->  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True),drawWall]
 
 drawGrid :: Game -> Widget Name
 drawGrid g = withBorderStyle BS.unicodeBold
@@ -175,7 +169,8 @@ theMap = attrMap V.defAttr
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
   (selfBaseAttr, V.black `on` V.red),
   (enemyBaseAttr, V.black `on` V.blue),
-  (collectibleAttr, V.black `on` V.yellow)
+  (collectibleAttr, V.black `on` V.yellow),
+  (welcomeCharAttr, V.black `on` welcomeCharColor)
   ]
 
 tankAttr, enemyAttr, wallAttr, stoneAttr, emptyAttr, selfBaseAttr, enemyBaseAttr :: AttrName
@@ -195,6 +190,9 @@ gameOverAttr = "gameOver"
 
 bulletAttr :: AttrName
 bulletAttr = "bulletAttr"
+
+welcomeCharAttr :: AttrName
+welcomeCharAttr = "welcomCharAttr"
 
 drawStats :: Game -> Bool -> Widget Name
 drawStats g True = hLimit 20
@@ -266,3 +264,30 @@ tankWestSquare = vBox [str " ←"]
 
 tankEastSquare :: Widget Name
 tankEastSquare = vBox [str " →"]
+
+
+welcomeCharColor :: V.Color
+welcomeCharColor = V.rgbColor 253 126 125
+
+drawWelcome :: Game -> [Widget Name]
+drawWelcome g = [ C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcomeText1 <=> welcomeText2)] ]
+  where 
+    welcomeText1 = C.hCenter $ hLimit (34 * 2) $ str "Welcome to Tank!"
+    welcomeText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <p> for new game | <q> to exit."
+    welcomePaint = hBox (map dummyDraw "t a n k" )
+
+dummyProcess :: [[Int]] -> Widget Name
+dummyProcess grid = vBox $ map f grid
+  where f arr = hBox $ map (\v -> if v == 1 then withAttr welcomeCharAttr oneS else oneS) arr
+
+dummyDraw :: Char -> Widget Name
+dummyDraw c = case c of
+  't' -> dummyProcess [[1,1,1,1],[1,0,0,1],[0,1,1,0],[0,1,1,0],[0,1,1,0]]
+  'a' -> dummyProcess [[1,1,1,1],[1,0,0,1],[1,1,1,1],[1,0,0,1],[1,0,0,1]]
+  'n' -> dummyProcess [[1,1,1,1],[1,0,0,1],[1,0,0,1],[1,0,0,1],[1,0,0,1]]
+  'k' -> dummyProcess [[1,0,0,1],[1,0,1,0],[1,1,0,0],[1,0,1,0],[1,0,0,1]]
+  ' ' -> dummyProcess $ replicate 5 [0]
+  _ -> dummyProcess $ replicate 5 [1,1,1,1]
+
+oneS :: Widget Name
+oneS = str "  "

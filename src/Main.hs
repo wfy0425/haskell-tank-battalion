@@ -43,6 +43,7 @@ initGame = Game {
               , _enemyBase = initBase EnemyRole
               , _gameOver = False
               , _collectible = initCollectible (width - 3) 5
+              , _gameState = GameReady
             }
 
 main :: IO ()

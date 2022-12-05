@@ -10,6 +10,7 @@ module Global (
     , Name
     , height
     , width
+    ,GameState(..)
 ) where
 
 import Linear.V2 (V2(..), _x, _y)
@@ -41,3 +42,10 @@ data Direction
 type Coord = V2 Int
 
 data Role = SelfRole | EnemyRole
+
+data GameState = GameReady
+ | GameSelecting
+ | GameRunning
+ | GameFinished
+ | GameAborted
+ deriving(Show, Eq)
