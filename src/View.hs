@@ -132,47 +132,47 @@ drawTank' EnemyRole tank =
     West  ->  tankWestSquare
 
 drawWall :: Widget Name
-drawWall  = withAttr wallAttr cw
+drawWall  = withAttr wallAttr $ str "▤▤▤"
 
 drawBullet :: Widget Name
 drawBullet  = withAttr bulletAttr cw
 
 drawStone :: Widget Name
-drawStone  = withAttr stoneAttr cw
+drawStone  = withAttr stoneAttr $ str "▣▣▣"
 
 drawLake :: Widget Name
-drawLake = withAttr lakeAttr cw
+drawLake = withAttr lakeAttr $ str "~~~"
 
 drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
 drawSelfBase :: Widget Name
-drawSelfBase = withAttr selfBaseAttr cw
+drawSelfBase = withAttr selfBaseAttr $ str " ⚑ "
 
 drawEnemyBase :: Widget Name
-drawEnemyBase = withAttr enemyBaseAttr cw
+drawEnemyBase = withAttr enemyBaseAttr $ str " ⚑ "
 
 drawCollectible :: Collectible -> Widget Name
 drawCollectible cc = withAttr collectibleAttr amount
 
 cw :: Widget Name
-cw = str "  "
+cw = str "   "
 
 amount :: Widget Name
-amount = str "20"
+amount = str " 20"
 
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-  [ (tankAttr, V.black `on` V.red),
-   (enemyAttr, V.black `on` V.blue),
-   (wallAttr, V.black `on` V.white),
-   (stoneAttr, V.black `on` V.brightYellow),
-   (lakeAttr, V.black `on` lakeColor),
+  [ (tankAttr, V.white `on` V.red),
+   (enemyAttr, V.white `on` V.blue),
+   (wallAttr, wallColor),
+   (stoneAttr, stoneColor),
+   (lakeAttr, lakeColor),
    (bulletAttr, V.black `on` V.green),
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
-  (selfBaseAttr, V.black `on` V.red),
-  (enemyBaseAttr, V.black `on` V.blue),
+  (selfBaseAttr, V.brightYellow `on` V.red),
+  (enemyBaseAttr, V.brightYellow `on` V.blue),
   (collectibleAttr, V.black `on` V.yellow),
   (welcomeCharAttr, V.black `on` welcomeCharColor)
   ]
@@ -274,23 +274,29 @@ drawGameOver g
 
 
 tankNorthSquare :: Widget Name
-tankNorthSquare = vBox [str " ↑"]
+tankNorthSquare = vBox [str "▲▲▲"]
 
 tankSouthSquare :: Widget Name
-tankSouthSquare = vBox [str " ↓"]
+tankSouthSquare = vBox [str "▼▼▼"]
 
 tankWestSquare :: Widget Name
-tankWestSquare = vBox [str " ←"]
+tankWestSquare = vBox [str "◀◀◀"]
 
 tankEastSquare :: Widget Name
-tankEastSquare = vBox [str " →"]
+tankEastSquare = vBox [str "▶▶▶"]
 
 
 welcomeCharColor :: V.Color
 welcomeCharColor = V.rgbColor 253 126 125
 
-lakeColor :: V.Color
-lakeColor = V.rgbColor 0 255 255
+wallColor :: V.Attr
+wallColor = V.rgbColor 255 153 0 `on` V.rgbColor 153 77 0
+
+stoneColor :: V.Attr
+stoneColor = V.rgbColor 166 166 166 `on` V.rgbColor 128 128 128
+
+lakeColor :: V.Attr
+lakeColor = V.blue `on` V.rgbColor 0 255 255
 
 drawWelcome :: Game -> [Widget Name]
 drawWelcome g = [ C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcomeText1 <=> welcomeText2)] ]

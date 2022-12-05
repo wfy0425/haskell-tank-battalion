@@ -56,4 +56,7 @@ initWall :: Coord -> Wall
 initWall c = c
 
 initLakes :: [Stone]
-initLakes = [V2 4 4, V2 4 5, V2 5 4, V2 5 5, V2 4 10, V2 4 11, V2 5 10, V2 5 11, V2 10 4, V2 10 5, V2 11 4, V2 11 5, V2 10 10, V2 10 11, V2 11 10, V2 11 11]
+initLakes = do
+  let positions = [V2 4 4, V2 4 5, V2 5 4, V2 5 5, V2 4 10, V2 4 11, V2 5 10, V2 5 11, V2 10 4, V2 10 5, V2 11 4, V2 11 5, V2 10 10, V2 10 11, V2 11 10, V2 11 11] \\ initStones
+  let positions' = positions \\ initWalls
+  positions'
