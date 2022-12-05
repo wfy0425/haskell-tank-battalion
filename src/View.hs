@@ -154,10 +154,6 @@ drawCollectible cc = withAttr collectibleAttr amount
 cw :: Widget Name
 cw = str "  "
 
-
-star :: Widget Name
-star = str "O"
-
 amount :: Widget Name
 amount = str "20"
 
