@@ -32,7 +32,8 @@ import Global
 import Game
 import Bullet
 import Collectible
-
+import Data.Ratio
+import Control.Lens.Operators
 -- Types
 
 
@@ -85,9 +86,9 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
-  | c == tankCo               = drawTank $ _tank g
-  | c == enemyCo              = drawEnemy $ _enemy g
-  | c == collectCo            = drawCollectible $ _collectible g
+  | c == collectCo            = drawCollectible $ _collectible g 
+  | c == tankCo               = drawTank SelfRole $ _tank g
+  | c == enemyCo              = drawTank EnemyRole $ _enemy g
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
   | c `elem` bulletCoords     = drawBullet

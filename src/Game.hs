@@ -2,11 +2,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Game (
-    Game(..)
-    , tank, enemy, walls, stones, bullets, selfBase, enemyBase, collectible
-    , isGameLost, isGameOver, isGameWon, moveEnemy, moveTank, fire, step
-) where
+
+module Game where
 
 import Control.Applicative ((<|>))
 import Control.Monad.Trans.Maybe
@@ -24,7 +21,7 @@ import Collectible
 
 
 data Game = Game
-  { 
+  {
     _tank   :: Tank        -- ^ obj of the tank
   , _enemy  :: Tank       -- ^ obj of the enemy
   , _walls  :: [Wall]       -- ^ location of the walls
@@ -57,27 +54,47 @@ nextCoord d c = do
       North -> V2 x (y + 1)
       South -> V2 x (y - 1)
       West -> V2 (x - 1) y
-      East -> V2 (x + 1) y 
+      East -> V2 (x + 1) y
 
-moveTank :: Direction -> Game -> Game
-moveTank d g = do
+moveTank :: Role -> Direction -> Game -> Game
+moveTank SelfRole d g = do
   let c = nextCoord d (g ^. tank . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if (x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)) then
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls)
+    && (c `notElem` g ^. stones) && (c /= _tankCoord (_enemy g)) then
     g & tank . tankCoord .~ c & tank . tankDirection .~ d
   else
     g & tank . tankDirection .~ d
-  
-moveEnemy :: Direction -> Game -> Game
-moveEnemy d g = do
+moveTank EnemyRole d g = do
   let c = nextCoord d (g ^. enemy . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if (x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)) then
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls)
+    && (c `notElem` g ^. stones) && (c /= _tankCoord (_tank g)) then
     g & enemy . tankCoord .~ c & enemy . tankDirection .~ d
   else
     g & enemy . tankDirection .~ d
+
+buildWall :: Role -> Game -> Game
+buildWall SelfRole g@Game{ _walls = ws} = do
+  let c = nextCoord (g ^. tank . tankDirection) (g ^. tank . tankCoord)
+  let x = c ^. _x
+  let y = c ^. _y
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
+    && (c `notElem` g ^. selfBase) && (c `notElem` g ^. enemyBase) && (c /= _tankCoord (_tank g)) && (c /= _tankCoord (_enemy g)) then
+    g & walls .~ (initWall c : ws)
+  else
+    g & walls .~ ws
+buildWall EnemyRole g@Game{ _walls = ws} = do
+  let c = nextCoord (g ^. enemy . tankDirection) (g ^. enemy . tankCoord)
+  let x = c ^. _x
+  let y = c ^. _y
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
+    && (c `notElem` g ^. selfBase) && (c `notElem` g ^. enemyBase) && (c /= _tankCoord (_tank g)) && (c /= _tankCoord (_enemy g)) then
+    g & walls .~ (initWall c : ws)
+  else
+    g & walls .~ ws
 
 isGameOver :: Game -> Bool
 isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0
@@ -90,10 +107,11 @@ isGameLost g = g ^. tank . tankHealth <= 0
 
 -- | step forward in time
 step :: Game -> Game
-step s = flip execState s . runMaybeT $ do 
+step s = flip execState s . runMaybeT $ do
     -- MaybeT $ guard . isGameOver $ s
     -- die <|> MaybeT (Just <$> modify bulletsFly) 
-    hit <|> attack <|> collect <|> MaybeT (Just <$> modify bulletsFly) 
+    hit <|> attack <|> collect <|> blinkState <|> MaybeT (Just <$> modify bulletsFly)
+
 
 
 die :: MaybeT (State Game) ()
@@ -107,15 +125,28 @@ hit = do
     bulletGetter <- use bullets
     wallGetter <- use walls
     stoneGetter <- use stones
-    let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter, 
-                                             w <- wallGetter, 
-                                             s <- stoneGetter, 
+    let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter,
+                                             w <- wallGetter,
+                                             s <- stoneGetter,
                                              b ^. bulletCoord  == w || b ^. bulletCoord == s ]
 
     guard $ not $ null coordsToBeDel
     MaybeT . fmap Just $ do
         modifying bullets (delBullets coordsToBeDel)
         modifying walls (delWalls coordsToBeDel)
+
+blinkState :: MaybeT (State Game) ()
+blinkState = do
+    tankGetter <- use tank
+    enemyGetter <- use enemy
+    guard $ tankGetter ^. tankBlinkCount > 0 || enemyGetter ^. tankBlinkCount > 0
+    MaybeT . fmap Just $ do
+        modifying tank decreaseBlink
+        modifying enemy decreaseBlink
+
+decreaseBlink :: Tank -> Tank
+decreaseBlink t= if t ^. tankBlinkCount > 0 then t & tankBlinkCount .~ (t ^. tankBlinkCount - 1) else t
+
 
 delBullets :: [Coord] -> [Bullet] -> [Bullet]
 delBullets coordsToBeDel bs = filter (\b -> not ((b ^. bulletCoord) `elem` coordsToBeDel)) bs
@@ -142,21 +173,32 @@ collectCollectible c t = t & tankHealth %~ (\h -> if h + 10 > 100 then 100 else 
 
 
 attack :: MaybeT (State Game) ()
-attack = do 
+attack = do
         bulletGetter <- use bullets
         tankGetter <- use tank
         enemyGetter <- use enemy
         let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter,
-                                                b ^. bulletCoord  == tankGetter ^. tankCoord 
+                                                b ^. bulletCoord  == tankGetter ^. tankCoord
                                                 || b ^. bulletCoord == enemyGetter ^. tankCoord ]
         guard $ not $ null coordsToBeDel
         MaybeT . fmap Just $ do
             modifying tank (hurt coordsToBeDel)
+            modifying tank (increaseBlink coordsToBeDel)
             modifying enemy (hurt coordsToBeDel)
+            modifying enemy (increaseBlink coordsToBeDel)
             modifying bullets (delBullets coordsToBeDel)
 
 hurt :: [Coord] -> Tank -> Tank
-hurt cs t = if (t ^. tankCoord `elem` cs && t ^. tankHealth > 0) then t & tankHealth .~ (t ^. tankHealth - 10) else t
+hurt cs t= if t ^. tankCoord `elem` cs && t ^. tankHealth > 0
+  then
+    t & tankHealth .~ (t ^. tankHealth - 10)
+  else t
+
+increaseBlink :: [Coord] -> Tank -> Tank
+increaseBlink cs t= if t ^. tankCoord `elem` cs && t ^. tankHealth > 0
+  then
+    t & tankBlinkCount .~ (t ^. tankBlinkCount + 4)
+  else t
 
 
 
@@ -168,19 +210,19 @@ hurt cs t = if (t ^. tankCoord `elem` cs && t ^. tankHealth > 0) then t & tankHe
 
 -- | Get next position of bullets
 bulletsFly :: Game -> Game
-bulletsFly g = g & bullets %~ map moveBullet 
+bulletsFly g = g & bullets %~ map moveBullet
 
 moveBullet :: Bullet -> Bullet
 moveBullet bullet@Bullet {_bulletDirection = bDir} = bullet & bulletCoord %~ moveCoord bDir False
 
-fire :: Role -> Game -> Game 
-fire SelfRole g@Game { _bullets = bs, _tank = t} = g & bullets .~ newBullet 
+fire :: Role -> Game -> Game
+fire SelfRole g@Game { _bullets = bs, _tank = t} = g & bullets .~ newBullet
                                                         where
                                                             bulletCoord = moveCoord (t ^. tankDirection) False (t ^. tankCoord)
-                                                            bulletDir = (t ^. tankDirection)
-                                                            newBullet = (initBullet bulletCoord bulletDir : bs)
-fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet 
+                                                            bulletDir = t ^. tankDirection
+                                                            newBullet = initBullet bulletCoord bulletDir : bs
+fire EnemyRole g@Game { _bullets = bs, _enemy = e} = g & bullets .~ newBullet
                                                         where
                                                             bulletCoord = moveCoord (e ^. tankDirection) False (e ^. tankCoord)
-                                                            bulletDir = (e ^. tankDirection)
-                                                            newBullet = (initBullet bulletCoord bulletDir : bs)
+                                                            bulletDir = e ^. tankDirection
+                                                            newBullet = initBullet bulletCoord bulletDir : bs
