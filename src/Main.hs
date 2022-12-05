@@ -56,20 +56,34 @@ main = do
 -- TODO:
 
 -- Tank
--- - make move functionality work
--- - direction
--- - Add health
+-- - [X] make move functionality work
+-- - [X] direction
+-- - [X] Add health
 
--- - Add bullets
+-- - [X] Add bullets
 
 -- gameboard
--- - Add walls
--- - Add score
--- - Add game over
--- - Add game win
--- - Add game start
--- - Add game pause
--- - Add game restart
--- - Add game quit
--- - Add game menu
--- - UI
+-- - [X] Add walls
+-- - [X] Add score
+-- - [ ] Add game over
+-- - [ ] Add game win
+-- - [X] Add game start
+-- - [ ] Add game pause
+-- - [ ] Add game restart
+-- - [X] Add game quit
+-- - [ ] Add game menu
+-- - [ ] UI
+-- - [ ] Add levels
+-- - [ ] items
+
+-- [ ] UI
+-- - [ ] Welcome screen
+-- - [ ] Game over screen
+-- - [ ] Game win screen
+-- - [ ] Game pause screen
+-- - [ ] level selection screen
+
+
+
+-- [ ] Unit tests
+-- [ ] Presentation 

@@ -139,14 +139,14 @@ star = str "O"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-  [ (tankAttr, V.red `on` V.red),
-   (enemyAttr, V.blue `on` V.blue),
-   (wallAttr, V.white `on` V.white),
-   (stoneAttr, V.brightYellow `on` V.brightYellow),
-   (bulletAttr, V.green `on` V.green),
+  [ (tankAttr, V.black `on` V.red),
+   (enemyAttr, V.black `on` V.blue),
+   (wallAttr, V.black `on` V.white),
+   (stoneAttr, V.black `on` V.brightYellow),
+   (bulletAttr, V.black `on` V.green),
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
-  (selfBaseAttr, V.red `on` V.red),
-  (enemyBaseAttr, V.blue `on` V.blue)
+  (selfBaseAttr, V.black `on` V.red),
+  (enemyBaseAttr, V.black `on` V.blue)
   ]
 
 tankAttr, enemyAttr, wallAttr, stoneAttr, emptyAttr, selfBaseAttr, enemyBaseAttr :: AttrName
@@ -198,11 +198,11 @@ drawStats g False = hLimit 20
 drawInstructions :: Bool -> Widget Name
 drawInstructions True = padAll 1
   $ vBox [  str "↑: up" , str "↓: down" , str"←: left", str"→: right"
-            ,str "space: shoot"
+            ,str "enter: shoot"
          ]
 drawInstructions False = padAll 1
   $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right"
-            ,str "enter: shoot"
+            ,str "space: shoot"
          ]
 
 drawGameOver :: Game -> Widget Name
