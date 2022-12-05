@@ -162,10 +162,10 @@ cw :: Widget Name
 cw = str "   "
 
 amount20 :: Widget Name
-amount20 = str "+20"
+amount20 = str "♥20"
 
 amount50 :: Widget Name
-amount50 = str "+50"
+amount50 = str "♥50"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
