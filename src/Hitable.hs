@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hitable where 
+module Hitable where
 
 import Data.List
 import Linear.V2 (V2(..))
@@ -49,3 +49,6 @@ initStones = do
 initBase :: Role -> Base
 initBase SelfRole = [V2 (width - 2) (height - 2), V2 (width - 2) (height - 3), V2 (width - 3) (height - 2), V2 (width - 3) (height - 3)]
 initBase EnemyRole = [V2 1 1, V2 1 2, V2 2 1, V2 2 2]
+
+initWall :: Coord -> Wall
+initWall c = c

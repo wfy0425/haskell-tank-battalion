@@ -38,15 +38,19 @@ import Bullet
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick)                             = continue $ step g
-handleEvent g (VtyEvent (V.EvKey V.KUp []))               = continue $ moveTank SelfRole North g
-handleEvent g (VtyEvent (V.EvKey V.KDown []))             = continue $ moveTank SelfRole South g
-handleEvent g (VtyEvent (V.EvKey V.KRight []))            = continue $ moveTank SelfRole East g
-handleEvent g (VtyEvent (V.EvKey V.KLeft []))             = continue $ moveTank SelfRole West g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'i') []))               = continue $ moveTank SelfRole North g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') []))             = continue $ moveTank SelfRole West g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') []))             = continue $ moveTank SelfRole South g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') []))            = continue $ moveTank SelfRole East g
+
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'o') []))       = continue $ buildWall SelfRole g
 
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))       = continue $ moveTank EnemyRole North g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveTank EnemyRole West g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveTank EnemyRole South g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))       = continue $ moveTank EnemyRole East g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveTank EnemyRole West g
+
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') []))       = continue $ buildWall EnemyRole g
 
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') [])) = continue $ turn North g
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') [])) = continue $ turn South g
@@ -199,7 +203,7 @@ drawStats g False = hLimit 20
 
 drawInstructions :: Bool -> Widget Name
 drawInstructions True = padAll 1
-  $ vBox [  str "↑: up" , str "↓: down" , str"←: left", str"→: right"
+  $ vBox [  str "i: up" , str "k: down" , str"j: left", str"l: right"
             ,str "enter: shoot"
          ]
 drawInstructions False = padAll 1

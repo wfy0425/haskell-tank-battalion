@@ -74,7 +74,7 @@ main = do
 -- - [ ] Add game menu
 -- - [ ] UI
 -- - [ ] Add maps
--- - [ ] build walls
+-- - [X] build walls
 
 -- - [ ] items
 -- - - [ ] armor
