@@ -77,13 +77,17 @@ handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') []))
   | otherwise = continue g
 
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') []))
-  | _gameState g == GameRunning = continue $ setGameState g GameSelecting
+  | _gameState g == GameRunning = continue $ changeToIndexWorld sIdx g
   | _gameState g == GameSelecting = continue $ setGameState g GameReady
   | otherwise = halt g
+  where
+    sIdx = _currentStageIdx g
 handleEvent g (VtyEvent (V.EvKey V.KEsc []))
-  | _gameState g == GameRunning = continue $ setGameState g GameSelecting
+  | _gameState g == GameRunning = continue $changeToIndexWorld sIdx g
   | _gameState g == GameSelecting = continue $ setGameState g GameReady
   | otherwise = halt g
+  where
+    sIdx = _currentStageIdx g
 
 handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))
   | _gameState g == GameRunning = continue $ fire EnemyRole g

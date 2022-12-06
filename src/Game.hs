@@ -62,12 +62,6 @@ makeLenses ''Game
 -- | Initialize a paused game with random food location
 initGame :: IO Game
 initGame = do 
-  let wall = initWalls
-  let stone = initStones
-  let lake = initLakes
---   print wall
---   print stone
---   print lake
   let stageData = [StageData {
       _tankPos = V2 (width - 3) 2 
       ,_enemyPos = V2 2 (height-3)
@@ -150,11 +144,11 @@ initGame = do
 initialWorld :: [StageData] -> Game
 initialWorld stageData = launchGame stageData 0 GameReady
 
--- | Select a new game with the given location
+-- | Select a new game with the given stageData
 changeToIndexWorld :: Int -> Game -> Game
 changeToIndexWorld idx g = launchGame (_stageData g) idx GameSelecting
 
--- common func: set state, set initData, set index, reload one play data  
+-- common func: launch a new game with the specific stageData and gameState  
 launchGame :: [StageData]  -> Int -> GameState -> Game
 launchGame stageData index gameState = Game{
               _tank  = initTank (s ^. tankPos) 
