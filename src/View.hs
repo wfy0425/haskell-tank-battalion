@@ -209,10 +209,10 @@ drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
 drawSelfBase :: Widget Name
-drawSelfBase = withAttr selfBaseAttr $ vBox [str "⚑⚑⚑ ",str "⚑⚑⚑ "]
+drawSelfBase = withAttr selfBaseAttr  $ vBox [str " ⚑⚑ ", str " ⚑⚑ "]
 
 drawEnemyBase :: Widget Name
-drawEnemyBase = withAttr enemyBaseAttr $ vBox [str "⚑⚑⚑ ", str "⚑⚑⚑ "]
+drawEnemyBase = withAttr enemyBaseAttr $ vBox [str " ⚑⚑ ", str " ⚑⚑ "]
 
 drawCollectible :: Collectible -> Widget Name
 drawCollectible cc = if cc ^. health == 20
