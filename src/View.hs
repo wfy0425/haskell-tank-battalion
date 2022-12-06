@@ -90,13 +90,13 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
-  | c == collectCo            = drawCollectible $ _collectible g 
+  | c `elem` bulletCoords     = drawBullet
   | c == tankCo               = drawTank SelfRole $ _tank g
   | c == enemyCo              = drawTank EnemyRole $ _enemy g
+  | c == collectCo            = drawCollectible $ _collectible g 
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
   | c `elem` g ^. lakes       = drawLake
-  | c `elem` bulletCoords     = drawBullet
   | c `elem` g ^. selfBase    = drawSelfBase
   | c `elem` g ^. enemyBase   = drawEnemyBase
   | otherwise                 = drawEmpty
