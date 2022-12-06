@@ -337,6 +337,7 @@ collect = do
     guard $ (tankGetter ^. tankCoord == collectibleGetter ^. collectibleCoord) || (enemyGetter ^. tankCoord == collectibleGetter ^. collectibleCoord)
     MaybeT . fmap Just $ do
         modifying tank (collectCollectible collectibleGetter)
+        modifying enemy (collectCollectible collectibleGetter)
         modifying collectible (addCollectible collectibleGetter)
         modifying collectible (deleteCollectible collectibleGetter)
         modifying collectible (lastCollectible collectibleGetter)
