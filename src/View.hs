@@ -33,6 +33,7 @@ import Global
 import Game
 import Bullet
 import Collectible
+import Ammo
 import Data.Ratio
 import Control.Lens.Operators
 -- Types
@@ -90,6 +91,7 @@ drawGrid g = withBorderStyle BS.unicodeBold
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
   | c == collectCo            = drawCollectible $ _collectible g 
+  | c == ammoCo               = drawAmmo $ _ammo g
   | c == tankCo               = drawTank SelfRole $ _tank g
   | c == enemyCo              = drawTank EnemyRole $ _enemy g
   | c `elem` g ^. walls       = drawWall
@@ -103,6 +105,7 @@ drawCellFromGame  g c
       tankCo                  = _tankCoord $ _tank g
       enemyCo                 = _tankCoord $ _enemy g
       collectCo               = _collectibleCoord $ _collectible g
+      ammoCo                  = _ammoCoord $ _ammo g
       bulletCoords            = [b ^. bulletCoord | b <- g ^. bullets]
 
 
@@ -157,6 +160,8 @@ drawCollectible cc = if cc ^. health == 20
             then withAttr collectibleAttr amount20
             else withAttr collectibleAttr amount50
 
+drawAmmo :: Ammo -> Widget Name
+drawAmmo ammo = withAttr ammoAttr $ str "⁍⁍5"
 
 cw :: Widget Name
 cw = str "   "
@@ -179,6 +184,7 @@ theMap = attrMap V.defAttr
   (selfBaseAttr, V.brightYellow `on` V.red),
   (enemyBaseAttr, V.brightYellow `on` V.blue),
   (collectibleAttr, V.black `on` V.yellow),
+  (ammoAttr, V.black `on` V.red),  
   (welcomeCharAttr, V.black `on` welcomeCharColor)
   ]
 
@@ -201,6 +207,9 @@ gameOverAttr = "gameOver"
 bulletAttr :: AttrName
 bulletAttr = "bulletAttr"
 
+ammoAttr :: AttrName
+ammoAttr = "ammoAttr"
+
 welcomeCharAttr :: AttrName
 welcomeCharAttr = "welcomCharAttr"
 
@@ -208,16 +217,18 @@ drawStats :: Game -> Bool -> Widget Name
 drawStats g True = hLimit 20
   $ vBox [
           padTop (Pad 2) $ drawTank SelfRole (_tank g),
-          str $ "Lives: " ++ show (g ^. tank ^. tankHealth),
+          str $ "Health: " ++ show (g ^. tank ^. tankHealth),
           str $ "Base: " ++ show (g ^. tank ^. baseHealth),
+          str $ "Damage: " ++ show (g ^. enemy ^. damageTaken),
           drawInstructions True,
           drawGameOver g
           ]
 drawStats g False = hLimit 20
   $ vBox [
           padTop (Pad 2) $ drawTank EnemyRole (_enemy g),
-          str $ "Lives: " ++ show (g ^. enemy ^. tankHealth),
+          str $ "Health: " ++ show (g ^. enemy ^. tankHealth),
           str $ "Base: " ++ show (g ^. enemy ^. baseHealth),
+          str $ "Damage: " ++ show (g ^. tank ^. damageTaken),
           drawInstructions False,
           drawGameOver g
   ]
