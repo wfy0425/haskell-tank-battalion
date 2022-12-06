@@ -22,9 +22,9 @@ import Global
 
 -- Types
 
-initTank :: Int -> Int -> Tank
-initTank xm ym = Tank {
-            _tankCoord = V2 xm ym
+initTank :: Coord -> Tank
+initTank c = Tank {
+            _tankCoord = c
               , _tankDirection = North
               , _tankHealth = 100
               , _baseHealth = 200

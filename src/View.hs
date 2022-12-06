@@ -18,7 +18,7 @@ import Brick
   , str
   , attrMap, withAttr, emptyWidget, AttrName, on, fg
   , (<+>), getContext
-  , (<=>) 
+  , (<=>)
   )
 import Brick.BChan (newBChan, writeBChan)
 import qualified Brick.Widgets.Border as B
@@ -44,32 +44,71 @@ import Control.Lens.Operators
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick)                             = continue $ step g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'i') []))               = continue $ moveTank SelfRole North g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') []))             = continue $ moveTank SelfRole West g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') []))             = continue $ moveTank SelfRole South g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') []))            = continue $ moveTank SelfRole East g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'i') []))
+  | _gameState g == GameRunning = continue $ moveTank SelfRole North g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') []))
+  | _gameState g == GameRunning = continue $ moveTank SelfRole West g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') []))
+  | _gameState g == GameRunning = continue $ moveTank SelfRole South g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') []))
+  | _gameState g == GameRunning = continue $ moveTank SelfRole East g
+  | otherwise = continue g
 
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'o') []))       = continue $ buildWall SelfRole g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'o') []))
+  | _gameState g == GameRunning = continue $ buildWall SelfRole g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))
+  | _gameState g == GameRunning = continue $ moveTank EnemyRole North g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))
+  | _gameState g == GameRunning = continue $ moveTank EnemyRole West g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))
+  | _gameState g == GameRunning = continue $ moveTank EnemyRole South g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))
+  | _gameState g == GameRunning = continue $ moveTank EnemyRole East g
+  | otherwise = continue g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') []))
+  | _gameState g == GameRunning = continue $ buildWall EnemyRole g
+  | otherwise = continue g
 
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') []))       = continue $ moveTank EnemyRole North g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'a') []))       = continue $ moveTank EnemyRole West g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 's') []))       = continue $ moveTank EnemyRole South g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'd') []))       = continue $ moveTank EnemyRole East g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') []))
+  | _gameState g == GameRunning = continue $ setGameState g GameSelecting
+  | _gameState g == GameSelecting = continue $ setGameState g GameReady
+  | otherwise = halt g
+handleEvent g (VtyEvent (V.EvKey V.KEsc []))
+  | _gameState g == GameRunning = continue $ setGameState g GameSelecting
+  | _gameState g == GameSelecting = continue $ setGameState g GameReady
+  | otherwise = halt g
 
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') []))       = continue $ buildWall EnemyRole g
-
--- handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') [])) = continue $ turn North g
--- handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') [])) = continue $ turn South g
--- handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') [])) = continue $ turn East g
--- handleEvent g (VtyEvent (V.EvKey (V.KChar 'h') [])) = continue $ turn West g
--- handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
--- handleEvent g (VtyEvent (V.EvKey (V.KChar 'p') []))       = continue $ setGameState g GameRunning
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') []))       = halt g
-handleEvent g (VtyEvent (V.EvKey V.KEsc []))              = halt g
-handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))       = continue $ fire EnemyRole g
+handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') []))
+  | _gameState g == GameRunning = continue $ fire EnemyRole g
+  | otherwise = continue g
 handleEvent g (VtyEvent (V.EvKey V.KEnter []))
-  | g^.gameState == GameReady = continue $ setGameState g GameRunning
-  | g ^. gameState == GameRunning = continue $ fire SelfRole g
+  | _gameState g == GameReady = continue $ setGameState g GameSelecting
+  | _gameState g == GameSelecting = continue $ setGameState g GameRunning
+  | _gameState g == GameRunning = continue $ fire SelfRole g
+  | otherwise = continue g
+
+handleEvent g (VtyEvent (V.EvKey V.KLeft []))
+  | _gameState g == GameSelecting =
+        if sIdx > 0 then continue $ changeToIndexWorld (sIdx - 1) g else continue $ changeToIndexWorld (sl - 1) g
+  | otherwise = continue g
+  where
+    sIdx = _currentStageIdx g
+    sl = length (_stageData g)
+
+handleEvent g (VtyEvent (V.EvKey V.KRight []))
+  | _gameState g == GameSelecting =
+        if sIdx < (sl - 1) then continue $ changeToIndexWorld (sIdx + 1) g else continue $ changeToIndexWorld 0 g
+  | otherwise = continue g
+  where
+    sIdx = _currentStageIdx g
+    sl = length (_stageData g)
 
 handleEvent g _                                           = continue g
 
@@ -78,16 +117,35 @@ handleEvent g _                                           = continue g
 drawUI :: Game -> [Widget Name]
 drawUI g = case g^.gameState of
   GameReady -> drawWelcome g
-  _ ->  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True),drawWall]
+  GameSelecting -> [ C.center $ padRight (Pad 2) (drawGameSelectingIns True) <+> drawGrid g <+> padLeft (Pad 2) (drawGameSelectingIns False)]
+  _ ->  [ C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True)]
+
+drawGameSelectingIns :: Bool -> Widget Name
+drawGameSelectingIns True = hLimit 20
+  $ vBox [
+          padTop (Pad 2) $ str " " ,
+          str " " ,
+          str " " ,
+          str " " ,
+          padAll 1 $ vBox [  str "Enter: start" , str "←: previous" , str"→:next", str"Q: return"],
+          str " " 
+          ]
+drawGameSelectingIns False = hLimit 20
+  $ vBox [
+          padTop (Pad 2) $ str " " ,
+          padLeft (Pad 14) $ str " " 
+          ]
 
 drawGrid :: Game -> Widget Name
 drawGrid g = withBorderStyle BS.unicodeBold
-  $ B.borderWithLabel (str "Tank")
+  $ B.borderWithLabel (str $ "Stage: " ++ showN )
   $ vBox rows
   where
     rows         = [hBox $ cellsInRow r | r <- [height-1,height-2..0]]
     cellsInRow y = [drawCoord (V2 x y) | x <- [0..width-1]]
     drawCoord    = drawCellFromGame g
+    showN = if stageN < 10 then "0" ++ show stageN else show stageN
+    stageN = _currentStageIdx g
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
@@ -95,7 +153,7 @@ drawCellFromGame  g c
   | c == tankCo               = drawTank SelfRole $ _tank g
   | c == enemyCo              = drawTank EnemyRole $ _enemy g
   | c == ammoCo               = drawAmmo $ _ammo g
-  | c == collectCo            = drawCollectible $ _collectible g 
+  | c == collectCo            = drawCollectible $ _collectible g
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
   | c `elem` g ^. lakes       = drawLake
@@ -157,7 +215,7 @@ drawEnemyBase :: Widget Name
 drawEnemyBase = withAttr enemyBaseAttr $ vBox [str "⚑⚑⚑⚑", str "⚑⚑⚑⚑"]
 
 drawCollectible :: Collectible -> Widget Name
-drawCollectible cc = if cc ^. health == 20 
+drawCollectible cc = if cc ^. health == 20
             then withAttr collectibleAttr amount20
             else withAttr collectibleAttr amount50
 
@@ -198,7 +256,7 @@ theMap = attrMap V.defAttr
   (selfBaseAttr, V.brightYellow `on` V.red),
   (enemyBaseAttr, V.brightYellow `on` V.blue),
   (collectibleAttr, V.black `on` V.yellow),
-  (ammoAttr, V.black `on` V.red),  
+  (ammoAttr, V.black `on` V.red),
   (welcomeCharAttr, V.black `on` welcomeCharColor)
   ]
 
@@ -324,7 +382,7 @@ lakeColor = V.blue `on` V.rgbColor 0 255 255
 
 drawWelcome :: Game -> [Widget Name]
 drawWelcome g = [ C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcomeText1 <=> welcomeText2)] ]
-  where 
+  where
     welcomeText1 = C.hCenter $ hLimit (34 * 2) $ str "Welcome to Tank!"
     welcomeText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
     welcomePaint = hBox (map dummyDraw "t a n k" )
