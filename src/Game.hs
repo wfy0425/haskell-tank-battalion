@@ -195,7 +195,7 @@ moveTank SelfRole d g = do
   let c = nextCoord d (g ^. tank . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls)
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
      && (c `notElem` g ^. lakes) && (c /= _tankCoord (_enemy g) && (c `notElem` g ^. selfBase) && (c `notElem` g ^. enemyBase)) then
     g & tank . tankCoord .~ c & tank . tankDirection .~ d
   else
@@ -204,7 +204,7 @@ moveTank EnemyRole d g = do
   let c = nextCoord d (g ^. enemy . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls)
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
      && (c `notElem` g ^. lakes) && (c /= _tankCoord (_tank g) && (c `notElem` g ^. selfBase) && (c `notElem` g ^. enemyBase)) then
     g & enemy . tankCoord .~ c & enemy . tankDirection .~ d
   else
