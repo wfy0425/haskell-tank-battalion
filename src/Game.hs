@@ -17,6 +17,7 @@ import Tank
 import Global
 import Bullet
 import Hitable
+import Ammo
 import Collectible
 -- types
 
@@ -34,6 +35,7 @@ data Game = Game
   , _gameOver :: Bool
   , _collectible :: Collectible
   , _gameState :: GameState
+  , _ammo :: Ammo
   } deriving (Show)
 
 makeLenses ''Game
@@ -115,7 +117,9 @@ isGameLost g = g ^. tank . tankHealth <= 0 || g ^. tank . baseHealth <= 0
 step :: Game -> Game
 step s = flip execState s . runMaybeT $ do 
     guard $ not (s ^. gameOver)
-    die <|> hit <|> attack <|> collect <|> blinkState <|> MaybeT (Just <$> modify bulletsFly)
+    collectAmmoTank <|> collectAmmoEnemy <|> die <|> hit <|> hitSelfBase <|> hitEnemyBase
+     <|> attack <|> collect <|> blinkState <|> 
+      MaybeT (Just <$> modify bulletsFly)
 
 
 die :: MaybeT (State Game) ()
@@ -131,22 +135,44 @@ hit = do
     bulletGetter <- use bullets
     wallGetter <- use walls
     stoneGetter <- use stones
-    selfBaseGetter <- use selfBase
-    enemyBaseGetter <- use enemyBase
+    -- selfBaseGetter <- use selfBase
+    -- enemyBaseGetter <- use enemyBase
     let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter, 
                                              w <- wallGetter, 
                                              s <- stoneGetter, 
-                                             sb <- selfBaseGetter,
-                                             eb <- enemyBaseGetter,
                                              b ^. bulletCoord  == w || b ^. bulletCoord == s 
-                                             || b ^. bulletCoord == sb || b ^. bulletCoord == eb]
+                                             ]
     guard $ not $ null coordsToBeDel
     MaybeT . fmap Just $ do
         modifying bullets (delBullets coordsToBeDel)
         modifying walls (delWalls coordsToBeDel)
-        modifying tank (reduceBaseHealth (head coordsToBeDel) selfBaseGetter)
-        modifying enemy (reduceBaseHealth (head coordsToBeDel) enemyBaseGetter)
 
+        --   modifying enemy (reduceBaseHealth (head coordsToBeDel) enemyBaseGetter)
+        --   modifying tank (reduceBaseHealth (head coordsToBeDel) selfBaseGetter)
+
+hitSelfBase :: MaybeT (State Game) ()
+hitSelfBase = do
+    bulletGetter <- use bullets
+    selfBaseGetter <- use selfBase
+    let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter, 
+                                             b ^. bulletCoord `elem` selfBaseGetter 
+                                             ]
+    guard $ not $ null coordsToBeDel
+    MaybeT . fmap Just $ do
+        modifying bullets (delBullets coordsToBeDel)
+        modifying tank (reduceBaseHealth (head coordsToBeDel) selfBaseGetter)
+
+hitEnemyBase :: MaybeT (State Game) ()
+hitEnemyBase = do
+    bulletGetter <- use bullets
+    enemyBaseGetter <- use enemyBase
+    let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter, 
+                                             b ^. bulletCoord `elem` enemyBaseGetter 
+                                             ]
+    guard $ not $ null coordsToBeDel
+    MaybeT . fmap Just $ do
+        modifying bullets (delBullets coordsToBeDel)
+        modifying enemy (reduceBaseHealth (head coordsToBeDel) enemyBaseGetter)
 
 blinkState :: MaybeT (State Game) ()
 blinkState = do
@@ -169,7 +195,7 @@ delWalls coordsToBeDel ws = filter (\w -> not ( w `elem` coordsToBeDel) ) ws
 
 
 reduceBaseHealth :: Coord -> Base -> Tank -> Tank
-reduceBaseHealth coordsToBeDel bs t = if coordsToBeDel `elem` bs then t & baseHealth %~ (\x -> x - 10) else t
+reduceBaseHealth coordsToBeDel bs t = if coordsToBeDel `elem` bs then t & baseHealth %~ (\x -> x - (t ^. damageTaken)) else t
 
 -- if tank is on collectible, collect it
 collect :: MaybeT (State Game) ()
@@ -202,6 +228,39 @@ deleteCollectible :: Collectible -> Collectible -> Collectible
 deleteCollectible c c' = if c ^. coordinateIndex > 5 then c' & collectibleCoord .~ V2 (-1) (-1)
                          else c' & collectibleCoord .~ ((c ^. coordinateList) !! (c ^. coordinateIndex))
 
+collectAmmoTank :: MaybeT (State Game) ()
+collectAmmoTank = do
+    tankGetter <- use tank
+    ammoGetter <- use ammo
+    guard $ tankGetter ^. tankCoord == ammoGetter ^. ammoCoord
+    MaybeT . fmap Just $ do
+        modifying enemy (collectAmmo ammoGetter)
+        modifying ammo (addAmmo ammoGetter)
+        modifying ammo (deleteAmmo ammoGetter)
+
+collectAmmoEnemy :: MaybeT (State Game) ()
+collectAmmoEnemy = do
+    enemyGetter <- use enemy
+    ammoGetter <- use ammo
+    guard $ enemyGetter ^. tankCoord == ammoGetter ^. ammoCoord
+    MaybeT . fmap Just $ do
+        modifying tank (collectAmmo ammoGetter)
+        modifying ammo (addAmmo ammoGetter)
+        modifying ammo (deleteAmmo ammoGetter)
+
+-- increase tank ammo by 5
+collectAmmo :: Ammo -> Tank -> Tank
+collectAmmo a t = t & damageTaken %~ (\h -> h + (a ^. ammoIncrease))
+
+-- increase ammo index by 1
+addAmmo :: Ammo -> Ammo -> Ammo
+addAmmo a a' = a' & ammoIndex .~ (a ^. ammoIndex + 1)
+
+-- update ammo position according to coordinate list
+deleteAmmo :: Ammo -> Ammo -> Ammo
+deleteAmmo a a' = if a ^. ammoIndex > 5 then a' & ammoCoord .~ V2 (-1) (-1)
+                         else a' & ammoCoord .~ ((a ^. ammoList) !! (a ^. ammoIndex))
+
 
 
 attack :: MaybeT (State Game) ()
@@ -223,7 +282,7 @@ attack = do
 hurt :: [Coord] -> Tank -> Tank
 hurt cs t= if t ^. tankCoord `elem` cs && t ^. tankHealth > 0
   then
-    t & tankHealth .~ (t ^. tankHealth - 10)
+    t & tankHealth .~ (t ^. tankHealth - t ^. damageTaken)
   else t
 
 increaseBlink :: [Coord] -> Tank -> Tank
@@ -251,7 +310,6 @@ fire EnemyRole g@Game { _bullets = bs, _enemy = e} = if not (g ^. gameOver) then
                                                             bulletDir = e ^. tankDirection
                                                             newBullet = initBullet bulletCoord bulletDir : bs
 
--- TODO: Add ammo pack which increases the damage of the bullet, may be need to add a new type of bullet
 -- TODO: (Maybe) add mine which explodes when tank is near
--- TODO: Investigate bullet speed to see if it is possible to make it faster
+
     

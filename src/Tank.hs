@@ -29,6 +29,7 @@ initTank xm ym = Tank {
               , _tankHealth = 100
               , _baseHealth = 200
               , _tankBlinkCount = 0
+              , _damageTaken = 10
             } 
 
 
@@ -38,6 +39,7 @@ data Tank = Tank {
   , _tankHealth :: Int
   , _baseHealth :: Int
   , _tankBlinkCount   :: Int -- ^ used to blink the tank when it is hit
+  , _damageTaken :: Int
 } deriving (Show)
 
 

@@ -15,6 +15,7 @@ import Tank
 import View
 import Global
 import Game
+import Ammo
 import Hitable
 import Collectible
 
@@ -45,6 +46,7 @@ initGame = Game {
               , _gameOver = False
               , _collectible = initCollectible (width - 3) 5
               , _gameState = GameReady
+              , _ammo = initAmmo 10 9
             }
 
 main :: IO ()
