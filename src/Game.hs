@@ -29,6 +29,8 @@ data StageData = StageData {
   ,_lakesPos :: [Coord]
   ,_selfBasePos :: [Coord]
   ,_enemyBasePos :: [Coord]
+  ,_ammoPos :: Coord
+  ,_collectiblePos :: Coord
 } deriving(Show, Read)
 makeLenses ''StageData
 
@@ -63,9 +65,9 @@ initGame = do
   let wall = initWalls
   let stone = initStones
   let lake = initLakes
-  print wall
-  print stone
-  print lake
+--   print wall
+--   print stone
+--   print lake
   let stageData = [StageData {
       _tankPos = V2 (width - 3) 2 
       ,_enemyPos = V2 2 (height-3)
@@ -104,6 +106,8 @@ initGame = do
         V2 11 10]
       ,_selfBasePos = [V2 (width - 2) (height - 2), V2 (width - 2) (height - 3), V2 (width - 3) (height - 2), V2 (width - 3) (height - 3)]
       ,_enemyBasePos = [V2 1 1, V2 1 2, V2 2 1, V2 2 2]
+     ,_ammoPos = V2 10 9
+     ,_collectiblePos = V2 16 5
   }, StageData {
       _tankPos = V2 (width - 3) 2 
       ,_enemyPos = V2 2 (height-3)
@@ -137,6 +141,8 @@ initGame = do
         ]
       ,_selfBasePos = [V2 (width - 2) (height - 2), V2 (width - 2) (height - 3), V2 (width - 3) (height - 2), V2 (width - 3) (height - 3)]
       ,_enemyBasePos = [V2 1 1, V2 1 2, V2 2 1, V2 2 2]
+      ,_ammoPos = V2 10 9
+      ,_collectiblePos = V2 16 5
   }]
   return $ initialWorld stageData
 
@@ -160,9 +166,9 @@ launchGame stageData index gameState = Game{
               , _selfBase = s ^. selfBasePos
               , _enemyBase = s ^. enemyBasePos
               , _gameOver = False
-              , _collectible = initCollectible (s ^. tankPos . _x) (s ^. tankPos . _y)
+              , _collectible = initCollectible (s ^. collectiblePos) index
               , _gameState = gameState
-              , _ammo = initAmmo 10 9
+              , _ammo = initAmmo (s ^. ammoPos) index
               , _stageData = stageData
               , _currentStageIdx = index
               }
@@ -265,8 +271,6 @@ hit = do
     bulletGetter <- use bullets
     wallGetter <- use walls
     stoneGetter <- use stones
-    -- selfBaseGetter <- use selfBase
-    -- enemyBaseGetter <- use enemyBase
     let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter, 
                                              w <- wallGetter, 
                                              s <- stoneGetter, 
@@ -276,9 +280,6 @@ hit = do
     MaybeT . fmap Just $ do
         modifying bullets (delBullets coordsToBeDel)
         modifying walls (delWalls coordsToBeDel)
-
-        --   modifying enemy (reduceBaseHealth (head coordsToBeDel) enemyBaseGetter)
-        --   modifying tank (reduceBaseHealth (head coordsToBeDel) selfBaseGetter)
 
 hitSelfBase :: MaybeT (State Game) ()
 hitSelfBase = do

@@ -194,13 +194,13 @@ drawTank' EnemyRole tank =
     West  ->  tankWestSquare
 
 drawWall :: Widget Name
-drawWall  = withAttr wallAttr $ vBox [str "▤▤▤▤", str "▤▤▤▤"]
+drawWall  = withAttr wallAttr $ vBox [str "▤▤▤ ", str "▤▤▤ "]
 
 drawBullet :: Widget Name
 drawBullet  = withAttr bulletAttr cw
 
 drawStone :: Widget Name
-drawStone  = withAttr stoneAttr $ vBox [str "▣▣▣▣", str "▣▣▣▣"]
+drawStone  = withAttr stoneAttr $ vBox [str "▣▣▣ ", str "▣▣▣ "]
 
 drawLake :: Widget Name
 drawLake = withAttr lakeAttr $ vBox [str "~~~~",str "~~~~"]
@@ -209,10 +209,10 @@ drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
 drawSelfBase :: Widget Name
-drawSelfBase = withAttr selfBaseAttr $ vBox [str "⚑⚑⚑⚑",str "⚑⚑⚑⚑"]
+drawSelfBase = withAttr selfBaseAttr $ vBox [str "⚑⚑⚑ ",str "⚑⚑⚑ "]
 
 drawEnemyBase :: Widget Name
-drawEnemyBase = withAttr enemyBaseAttr $ vBox [str "⚑⚑⚑⚑", str "⚑⚑⚑⚑"]
+drawEnemyBase = withAttr enemyBaseAttr $ vBox [str "⚑⚑⚑ ", str "⚑⚑⚑ "]
 
 drawCollectible :: Collectible -> Widget Name
 drawCollectible cc = if cc ^. health == 20
@@ -220,7 +220,7 @@ drawCollectible cc = if cc ^. health == 20
             else withAttr collectibleAttr amount50
 
 drawAmmo :: Ammo -> Widget Name
-drawAmmo ammo = withAttr ammoAttr $ str "⁍⁍5"
+drawAmmo ammo = withAttr ammoAttr $ vBox [str " ⁍⁍ ", str " +5 "]
 
 cw :: Widget Name
 cw = vBox [str "    ", str "    "]
