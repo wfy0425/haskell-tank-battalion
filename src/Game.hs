@@ -21,6 +21,16 @@ import Ammo
 import Collectible
 -- types
 
+data StageData = StageData {
+  _tankPos :: Coord
+  ,_enemyPos :: Coord
+  ,_wallsPos :: [Coord]
+  ,_stonesPos :: [Coord]
+  ,_lakesPos :: [Coord]
+  ,_selfBasePos :: [Coord]
+  ,_enemyBasePos :: [Coord]
+} deriving(Show, Read)
+makeLenses ''StageData
 
 data Game = Game
   {
@@ -36,11 +46,130 @@ data Game = Game
   , _collectible :: Collectible
   , _gameState :: GameState
   , _ammo :: Ammo
+
+  , _stageData :: [StageData]
+  , _currentStageIdx :: Int 
   } deriving (Show)
 
 makeLenses ''Game
 
+
+
 -- Functions
+
+-- | Initialize a paused game with random food location
+initGame :: IO Game
+initGame = do 
+  let wall = initWalls
+  let stone = initStones
+  let lake = initLakes
+  print wall
+  print stone
+  print lake
+  let stageData = [StageData {
+      _tankPos = V2 (width - 3) 2 
+      ,_enemyPos = V2 2 (height-3)
+      ,_wallsPos = [
+        V2 5 11,V2 5 12,V2 5 13,V2 5 14,V2 5 15,V2 5 16,V2 5 17,V2 5 18,
+        V2 6 11,V2 6 18,
+        V2 7 11,V2 7 18,
+        V2 8 11,V2 8 18,
+        V2 9 11,V2 9 18,
+        V2 10 11,V2 10 18,
+        V2 11 11,V2 11 18,
+        V2 12 11,V2 12 18,
+        V2 13 11,V2 13 18,
+        V2 14 11,V2 14 18,
+        V2 15 11,V2 15 12,V2 15 13,V2 15 14,V2 15 15,V2 15 16,V2 15 17,V2 15 18,
+        V2 4 1,V2 4 2,V2 4 3,V2 4 4,V2 4 5,V2 4 6,V2 4 7,V2 4 8,
+        V2 5 1,V2 5 8,
+        V2 6 1,V2 6 8,
+        V2 7 1,V2 7 8,
+        V2 8 1,V2 8 8,
+        V2 9 1,V2 9 8,
+        V2 10 1,V2 10 8,
+        V2 11 1,V2 11 8,
+        V2 12 1,V2 12 8,
+        V2 13 1,V2 13 8,
+        V2 14 1,V2 14 2,V2 14 3,V2 14 4,V2 14 5,V2 14 6,V2 14 7,V2 14 8]
+      ,_stonesPos = [
+        V2 7 14,V2 7 15,V2 7 16,
+        V2 8 14,V2 8 15,V2 8 16,
+        V2 11 3,V2 11 4,V2 11 5,
+        V2 12 3,V2 12 4,V2 12 5]
+      ,_lakesPos = [
+        V2 5 4,V2 5 5,V2 5 10,
+        V2 4 10,V2 4 11,
+        V2 10 4,V2 10 5,V2 10 10,
+        V2 11 10]
+      ,_selfBasePos = [V2 (width - 2) (height - 2), V2 (width - 2) (height - 3), V2 (width - 3) (height - 2), V2 (width - 3) (height - 3)]
+      ,_enemyBasePos = [V2 1 1, V2 1 2, V2 2 1, V2 2 2]
+  }, StageData {
+      _tankPos = V2 (width - 3) 2 
+      ,_enemyPos = V2 2 (height-3)
+      ,_wallsPos = [
+        V2 5 19,V2 5 12,V2 5 13,V2 5 14,V2 5 15,V2 5 16,V2 5 17,V2 5 18,
+        V2 6 19,V2 6 18, V2 6 13,V2 6 15,
+        V2 7 19,V2 7 18, V2 7 13,V2 7 15,
+        V2 8 19,V2 8 18, V2 8 13,V2 8 15,
+        V2 9 19,V2 9 18, V2 9 13,V2 9 15,
+        V2 10 19,V2 10 18, V2 10 13,V2 10 15,
+        V2 11 19,V2 11 18, V2 11 13,V2 11 15,
+        V2 12 19,V2 12 18, V2 12 13,V2 12 15,
+        V2 13 19,V2 13 18, V2 13 13,V2 13 15,
+        V2 14 19,V2 14 18, V2 14 13,V2 14 15,
+        V2 15 19,V2 15 12,V2 15 13,V2 15 14,V2 15 15,V2 15 16,V2 15 17,V2 15 18
+        ]
+      ,_stonesPos = []
+      ,_lakesPos = [
+        V2 4 4,V2 4 5,V2 4 6,V2 4 7,V2 4 8,
+        V2 5 4,V2 5 5,V2 5 6,V2 5 7,V2 5 8,
+        V2 6 4,V2 6 5,V2 6 6,V2 6 7,V2 6 8,
+        V2 7 4,V2 7 5,V2 7 6,V2 7 7,V2 7 8,
+        V2 8 4,V2 8 5,V2 8 6,V2 8 7,V2 8 8,
+        V2 9 4,V2 9 5,V2 9 6,V2 9 7,V2 9 8,
+        V2 10 4,V2 10 5,V2 10 6,V2 10 7,V2 10 8,
+        V2 11 4,V2 11 5,V2 11 6,V2 11 7,V2 11 8,
+        V2 12 4,V2 12 5,V2 12 6,V2 12 7,V2 12 8,
+        V2 13 4,V2 13 5,V2 13 6,V2 13 7,V2 13 8,
+        V2 14 4,V2 14 5,V2 14 6,V2 14 7,V2 14 8,
+        V2 15 4,V2 15 5,V2 15 6,V2 15 7,V2 15 8
+        ]
+      ,_selfBasePos = [V2 (width - 2) (height - 2), V2 (width - 2) (height - 3), V2 (width - 3) (height - 2), V2 (width - 3) (height - 3)]
+      ,_enemyBasePos = [V2 1 1, V2 1 2, V2 2 1, V2 2 2]
+  }]
+  return $ initialWorld stageData
+
+-- create world from initData and set state to GameReady
+initialWorld :: [StageData] -> Game
+initialWorld stageData = launchGame stageData 0 GameReady
+
+-- | Select a new game with the given location
+changeToIndexWorld :: Int -> Game -> Game
+changeToIndexWorld idx g = launchGame (_stageData g) idx GameSelecting
+
+-- common func: set state, set initData, set index, reload one play data  
+launchGame :: [StageData]  -> Int -> GameState -> Game
+launchGame stageData index gameState = Game{
+              _tank  = initTank (s ^. tankPos) 
+              , _enemy = initTank (s ^. enemyPos)
+              , _walls = map initWall (s ^. wallsPos)
+              , _stones = map initStone (s ^. stonesPos)
+              , _lakes = map initLake (s ^. lakesPos)
+              , _bullets = []
+              , _selfBase = s ^. selfBasePos
+              , _enemyBase = s ^. enemyBasePos
+              , _gameOver = False
+              , _collectible = initCollectible (s ^. tankPos . _x) (s ^. tankPos . _y)
+              , _gameState = gameState
+              , _ammo = initAmmo 10 9
+              , _stageData = stageData
+              , _currentStageIdx = index
+              }
+              where
+                s = stageData !! index
+
+
 
 -- | update coordinate
 -- | Bool: should run inside of the board
@@ -103,6 +232,7 @@ buildWall EnemyRole g@Game{ _walls = ws} = do
 
 setGameState :: Game -> GameState -> Game
 setGameState g s = g & gameState .~ s
+
 
 isGameOver :: Game -> Bool
 isGameOver g = g ^. tank . tankHealth <= 0 || g ^. enemy . tankHealth <= 0 || g ^. tank . baseHealth <= 0 || g ^. enemy . baseHealth <= 0

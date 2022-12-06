@@ -1,6 +1,4 @@
-module Main
-  ( main
-  ) where
+module Main where
 
 import Control.Monad (forever, void)
 import Control.Concurrent (threadDelay, forkIO)
@@ -32,22 +30,8 @@ app = App { appDraw = drawUI
           }
 
 
--- | Initialize a paused game with random food location
-initGame :: Game
-initGame = Game {
-              _tank  = initTank (width - 3) 2 
-              , _enemy = initTank 2 (height-3)
-              , _walls = initWalls
-              , _stones = initStones
-              , _lakes = initLakes
-              , _bullets = []
-              , _selfBase = initBase SelfRole
-              , _enemyBase = initBase EnemyRole
-              , _gameOver = False
-              , _collectible = initCollectible (width - 3) 5
-              , _gameState = GameReady
-              , _ammo = initAmmo 10 9
-            }
+
+
 
 main :: IO ()
 main = do
@@ -55,10 +39,10 @@ main = do
   forkIO $ forever $ do
     writeBChan chan Tick
     threadDelay 100000 -- decides how fast your game moves
-  -- g <- initGame
+  g <- initGame
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
-  void $ customMain initialVty builder (Just chan) app initGame
+  void $ customMain initialVty builder (Just chan) app g
 
 
 -- TODO:
