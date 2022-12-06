@@ -24,6 +24,7 @@ import Brick.BChan (newBChan, writeBChan)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
+import qualified Brick.Widgets.Core
 import Control.Lens ((^.))
 import qualified Graphics.Vty as V
 import Data.Sequence (Seq)
@@ -90,14 +91,14 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
-  | c == collectCo            = drawCollectible $ _collectible g 
-  | c == ammoCo               = drawAmmo $ _ammo g
+  | c `elem` bulletCoords     = drawBullet
   | c == tankCo               = drawTank SelfRole $ _tank g
   | c == enemyCo              = drawTank EnemyRole $ _enemy g
+  | c == ammoCo               = drawAmmo $ _ammo g
+  | c == collectCo            = drawCollectible $ _collectible g 
   | c `elem` g ^. walls       = drawWall
   | c `elem` g ^. stones      = drawStone
   | c `elem` g ^. lakes       = drawLake
-  | c `elem` bulletCoords     = drawBullet
   | c `elem` g ^. selfBase    = drawSelfBase
   | c `elem` g ^. enemyBase   = drawEnemyBase
   | otherwise                 = drawEmpty
@@ -135,25 +136,25 @@ drawTank' EnemyRole tank =
     West  ->  tankWestSquare
 
 drawWall :: Widget Name
-drawWall  = withAttr wallAttr $ str "▤▤▤"
+drawWall  = withAttr wallAttr $ vBox [str "▤▤▤▤", str "▤▤▤▤"]
 
 drawBullet :: Widget Name
 drawBullet  = withAttr bulletAttr cw
 
 drawStone :: Widget Name
-drawStone  = withAttr stoneAttr $ str "▣▣▣"
+drawStone  = withAttr stoneAttr $ vBox [str "▣▣▣▣", str "▣▣▣▣"]
 
 drawLake :: Widget Name
-drawLake = withAttr lakeAttr $ str "~~~"
+drawLake = withAttr lakeAttr $ vBox [str "~~~~",str "~~~~"]
 
 drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
 drawSelfBase :: Widget Name
-drawSelfBase = withAttr selfBaseAttr $ str " ⚑ "
+drawSelfBase = withAttr selfBaseAttr $ vBox [str "⚑⚑⚑⚑",str "⚑⚑⚑⚑"]
 
 drawEnemyBase :: Widget Name
-drawEnemyBase = withAttr enemyBaseAttr $ str " ⚑ "
+drawEnemyBase = withAttr enemyBaseAttr $ vBox [str "⚑⚑⚑⚑", str "⚑⚑⚑⚑"]
 
 drawCollectible :: Collectible -> Widget Name
 drawCollectible cc = if cc ^. health == 20 
@@ -164,13 +165,26 @@ drawAmmo :: Ammo -> Widget Name
 drawAmmo ammo = withAttr ammoAttr $ str "⁍⁍5"
 
 cw :: Widget Name
-cw = str "   "
+cw = vBox [str "    ", str "    "]
 
 amount20 :: Widget Name
-amount20 = str "♥20"
+amount20 = vBox [str " ♥♥ ", str " 20 "]
 
 amount50 :: Widget Name
-amount50 = str "♥50"
+amount50 = vBox [str " ♥♥ ", str " 50 "]
+
+
+tankNorthSquare :: Widget Name
+tankNorthSquare = vBox [str " ▲▲ ", str " ▲▲ "]
+
+tankSouthSquare :: Widget Name
+tankSouthSquare = vBox [str " ▼▼ ", str " ▼▼ "]
+
+tankWestSquare :: Widget Name
+tankWestSquare = vBox [str " ◀◀ ", str " ◀◀ "]
+
+tankEastSquare :: Widget Name
+tankEastSquare = vBox [str " ▶▶ ", str " ▶▶ "]
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -193,10 +207,12 @@ tankAttr = "tankAttr"
 enemyAttr = "enemyAttr"
 wallAttr = "wallAttr"
 stoneAttr = "stoneAttr"
-lakeAttr = "lakeAttr"
 emptyAttr = "emptyAttr"
 selfBaseAttr = "selfBaseAttr"
 enemyBaseAttr = "enemyBaseAttr"
+
+lakeAttr :: AttrName
+lakeAttr = "lakeAttr"
 
 collectibleAttr :: AttrName
 collectibleAttr = "collectibleAttr"
@@ -250,12 +266,14 @@ drawStats g False = hLimit 20
 
 drawInstructions :: Bool -> Widget Name
 drawInstructions True = padAll 1
-  $ vBox [  str "i: up" , str "k: down" , str"j: left", str"l: right"
-            ,str "enter: shoot"
+  $ vBox [  str "I: up" , str "K: down" , str"J: left", str"L: right",
+            str "O: place brick",
+            str "enter: shoot"
          ]
 drawInstructions False = padAll 1
-  $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right"
-            ,str "space: shoot"
+  $ vBox [  str "W: up" , str "S: down" , str"A: left", str"D: right",
+            str "E: place brick",
+            str "space: shoot"
          ]
 
 -- drawGameOver :: Game -> Widget Name
@@ -289,17 +307,7 @@ drawGameOver g
 
 
 
-tankNorthSquare :: Widget Name
-tankNorthSquare = vBox [str "▲▲▲"]
 
-tankSouthSquare :: Widget Name
-tankSouthSquare = vBox [str "▼▼▼"]
-
-tankWestSquare :: Widget Name
-tankWestSquare = vBox [str "◀◀◀"]
-
-tankEastSquare :: Widget Name
-tankEastSquare = vBox [str "▶▶▶"]
 
 
 welcomeCharColor :: V.Color
