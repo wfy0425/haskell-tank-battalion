@@ -153,7 +153,6 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 drawCellFromGame :: Game -> Coord -> Widget Name
 drawCellFromGame  g c
-  | c `elem` bulletCoords     = drawBullet
   | c == tankCo               = drawTank SelfRole $ _tank g
   | c == enemyCo              = drawTank EnemyRole $ _enemy g
   | c == ammoCo               = drawAmmo $ _ammo g
@@ -163,6 +162,7 @@ drawCellFromGame  g c
   | c `elem` g ^. lakes       = drawLake
   | c `elem` g ^. selfBase    = drawSelfBase
   | c `elem` g ^. enemyBase   = drawEnemyBase
+  | c `elem` bulletCoords     = drawBullet
   | otherwise                 = drawEmpty
   where
       tankCo                  = _tankCoord $ _tank g
@@ -213,7 +213,7 @@ drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
 drawSelfBase :: Widget Name
-drawSelfBase = withAttr selfBaseAttr  $ vBox [str " ⚑⚑ ", str " ⚑⚑ "]
+drawSelfBase = withAttr selfBaseAttr $ vBox [str " ⚑⚑ ",str " ⚑⚑ "]
 
 drawEnemyBase :: Widget Name
 drawEnemyBase = withAttr enemyBaseAttr $ vBox [str " ⚑⚑ ", str " ⚑⚑ "]
