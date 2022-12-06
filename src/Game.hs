@@ -135,8 +135,6 @@ hit = do
     bulletGetter <- use bullets
     wallGetter <- use walls
     stoneGetter <- use stones
-    -- selfBaseGetter <- use selfBase
-    -- enemyBaseGetter <- use enemyBase
     let coordsToBeDel = [ b ^. bulletCoord | b <- bulletGetter, 
                                              w <- wallGetter, 
                                              s <- stoneGetter, 
@@ -146,9 +144,6 @@ hit = do
     MaybeT . fmap Just $ do
         modifying bullets (delBullets coordsToBeDel)
         modifying walls (delWalls coordsToBeDel)
-
-        --   modifying enemy (reduceBaseHealth (head coordsToBeDel) enemyBaseGetter)
-        --   modifying tank (reduceBaseHealth (head coordsToBeDel) selfBaseGetter)
 
 hitSelfBase :: MaybeT (State Game) ()
 hitSelfBase = do
