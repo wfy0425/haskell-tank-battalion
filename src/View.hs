@@ -197,7 +197,7 @@ drawWall :: Widget Name
 drawWall  = withAttr wallAttr $ vBox [str "▤▤▤ ", str "▤▤▤ "]
 
 drawBullet :: Widget Name
-drawBullet  = withAttr bulletAttr cw
+drawBullet  = withAttr bulletAttr  $ vBox [str " ●● ", str " ●● "]
 
 drawStone :: Widget Name
 drawStone  = withAttr stoneAttr $ vBox [str "▣▣▣ ", str "▣▣▣ "]
@@ -233,16 +233,16 @@ amount50 = vBox [str " ♥♥ ", str " 50 "]
 
 
 tankNorthSquare :: Widget Name
-tankNorthSquare = vBox [str " ▲▲ ", str " ▲▲ "]
+tankNorthSquare = vBox [str " ▲▲ ", str "    "]
 
 tankSouthSquare :: Widget Name
-tankSouthSquare = vBox [str " ▼▼ ", str " ▼▼ "]
+tankSouthSquare = vBox [str "    ", str " ▼▼ "]
 
 tankWestSquare :: Widget Name
-tankWestSquare = vBox [str " ◀◀ ", str " ◀◀ "]
+tankWestSquare = vBox [str " ◀  ", str " ◀  "]
 
 tankEastSquare :: Widget Name
-tankEastSquare = vBox [str " ▶▶ ", str " ▶▶ "]
+tankEastSquare = vBox [str "  ▶ ", str "  ▶ "]
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -251,7 +251,7 @@ theMap = attrMap V.defAttr
    (wallAttr, wallColor),
    (stoneAttr, stoneColor),
    (lakeAttr, lakeColor),
-   (bulletAttr, V.black `on` V.green),
+    (bulletAttr, fg V.green `V.withStyle` V.bold),
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
   (selfBaseAttr, V.brightYellow `on` V.red),
   (enemyBaseAttr, V.brightYellow `on` V.blue),
