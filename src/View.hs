@@ -24,6 +24,7 @@ import Brick.BChan (newBChan, writeBChan)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
+import qualified Brick.Widgets.Core
 import Control.Lens ((^.))
 import qualified Graphics.Vty as V
 import Data.Sequence (Seq)
@@ -132,25 +133,25 @@ drawTank' EnemyRole tank =
     West  ->  tankWestSquare
 
 drawWall :: Widget Name
-drawWall  = withAttr wallAttr $ str "▤▤▤"
+drawWall  = withAttr wallAttr $ vBox [str "▤▤▤▤", str "▤▤▤▤"]
 
 drawBullet :: Widget Name
 drawBullet  = withAttr bulletAttr cw
 
 drawStone :: Widget Name
-drawStone  = withAttr stoneAttr $ str "▣▣▣"
+drawStone  = withAttr stoneAttr $ vBox [str "▣▣▣▣", str "▣▣▣▣"]
 
 drawLake :: Widget Name
-drawLake = withAttr lakeAttr $ str "~~~"
+drawLake = withAttr lakeAttr $ vBox [str "~~~~",str "~~~~"]
 
 drawEmpty :: Widget Name
 drawEmpty = withAttr emptyAttr cw
 
 drawSelfBase :: Widget Name
-drawSelfBase = withAttr selfBaseAttr $ str " ⚑ "
+drawSelfBase = withAttr selfBaseAttr $ vBox [str "⚑⚑⚑⚑",str "⚑⚑⚑⚑"]
 
 drawEnemyBase :: Widget Name
-drawEnemyBase = withAttr enemyBaseAttr $ str " ⚑ "
+drawEnemyBase = withAttr enemyBaseAttr $ vBox [str "⚑⚑⚑⚑", str "⚑⚑⚑⚑"]
 
 drawCollectible :: Collectible -> Widget Name
 drawCollectible cc = if cc ^. health == 20 
@@ -159,13 +160,26 @@ drawCollectible cc = if cc ^. health == 20
 
 
 cw :: Widget Name
-cw = str "   "
+cw = vBox [str "    ", str "    "]
 
 amount20 :: Widget Name
-amount20 = str "♥20"
+amount20 = vBox [str " ♥♥ ", str " 20 "]
 
 amount50 :: Widget Name
-amount50 = str "♥50"
+amount50 = vBox [str " ♥♥ ", str " 50 "]
+
+
+tankNorthSquare :: Widget Name
+tankNorthSquare = vBox [str " ▲▲ ", str " ▲▲ "]
+
+tankSouthSquare :: Widget Name
+tankSouthSquare = vBox [str " ▼▼ ", str " ▼▼ "]
+
+tankWestSquare :: Widget Name
+tankWestSquare = vBox [str " ◀◀ ", str " ◀◀ "]
+
+tankEastSquare :: Widget Name
+tankEastSquare = vBox [str " ▶▶ ", str " ▶▶ "]
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -187,10 +201,12 @@ tankAttr = "tankAttr"
 enemyAttr = "enemyAttr"
 wallAttr = "wallAttr"
 stoneAttr = "stoneAttr"
-lakeAttr = "lakeAttr"
 emptyAttr = "emptyAttr"
 selfBaseAttr = "selfBaseAttr"
 enemyBaseAttr = "enemyBaseAttr"
+
+lakeAttr :: AttrName
+lakeAttr = "lakeAttr"
 
 collectibleAttr :: AttrName
 collectibleAttr = "collectibleAttr"
@@ -280,17 +296,7 @@ drawGameOver g
 
 
 
-tankNorthSquare :: Widget Name
-tankNorthSquare = vBox [str "▲▲▲"]
 
-tankSouthSquare :: Widget Name
-tankSouthSquare = vBox [str "▼▼▼"]
-
-tankWestSquare :: Widget Name
-tankWestSquare = vBox [str "◀◀◀"]
-
-tankEastSquare :: Widget Name
-tankEastSquare = vBox [str "▶▶▶"]
 
 
 welcomeCharColor :: V.Color
