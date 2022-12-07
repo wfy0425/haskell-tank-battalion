@@ -39,6 +39,7 @@ initCollectible c x =
 
 data Collectible = Collectible
   { _collectibleCoord :: Coord,
+    -- | a fake random list
     _coordinateList :: [Coord],
     _coordinateIndex :: Int,
     _health :: Int

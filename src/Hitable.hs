@@ -8,7 +8,7 @@ import Data.List
 import Global
 import Linear.V2 (V2 (..))
 
---types
+-- | types
 type Wall = Coord
 type Stone = Coord
 type Lake = Coord

@@ -144,21 +144,21 @@ drawWelcome g = [C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcom
   where
     welcomeText1 = C.hCenter $ hLimit (34 * 2) $ str "Welcome to Tank!"
     welcomeText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
-    welcomePaint = hBox (map dummyDraw "t a n k")
+    welcomePaint = hBox (map drawLogo "t a n k")
 
-dummyProcess :: [[Int]] -> Widget Name
-dummyProcess grid = vBox $ map f grid
+drawLogoPixel :: [[Int]] -> Widget Name
+drawLogoPixel grid = vBox $ map f grid
   where
     f arr = hBox $ map (\v -> if v == 1 then withAttr welcomeCharAttr oneS else oneS) arr
 
-dummyDraw :: Char -> Widget Name
-dummyDraw c = case c of
-  't' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 0], [0, 1, 1, 0]]
-  'a' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
-  'n' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
-  'k' -> dummyProcess [[1, 0, 0, 1], [1, 0, 1, 0], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1]]
-  ' ' -> dummyProcess $ replicate 5 [0]
-  _ -> dummyProcess $ replicate 5 [1, 1, 1, 1]
+drawLogo :: Char -> Widget Name
+drawLogo c = case c of
+  't' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 0], [0, 1, 1, 0]]
+  'a' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
+  'n' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
+  'k' -> drawLogoPixel [[1, 0, 0, 1], [1, 0, 1, 0], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1]]
+  ' ' -> drawLogoPixel $ replicate 5 [0]
+  _ -> drawLogoPixel $ replicate 5 [1, 1, 1, 1]
 
 drawGameSelectingIns :: Bool -> Widget Name
 drawGameSelectingIns True =

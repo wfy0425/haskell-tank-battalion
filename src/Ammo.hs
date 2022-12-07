@@ -39,6 +39,7 @@ initAmmo c x =
 
 data Ammo = Ammo
   { _ammoCoord :: Coord,
+    -- | a fake random list
     _ammoList :: [Coord],
     _ammoIndex :: Int,
     _ammoIncrease :: Int

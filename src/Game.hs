@@ -268,7 +268,7 @@ initGame = do
         ]
   return $ initialWorld stageData
 
--- create world from initData and set state to GameReady
+-- | create world from initData and set state to GameReady
 initialWorld :: [StageData] -> Game
 initialWorld stageData = launchGame stageData 0 GameReady
 
@@ -276,7 +276,7 @@ initialWorld stageData = launchGame stageData 0 GameReady
 changeToIndexWorld :: Int -> Game -> Game
 changeToIndexWorld idx g = launchGame (_stageData g) idx GameSelecting
 
--- common func: launch a new game with the specific stageData and gameState
+-- | helper function: launch a new game with the specific stageData and gameState
 launchGame :: [StageData] -> Int -> GameState -> Game
 launchGame stageData index gameState =
   Game
@@ -434,8 +434,8 @@ hitEnemyBase = do
     modifying bullets (delBullets coordsToBeDel)
     modifying enemy (reduceBaseHealth (head coordsToBeDel) enemyBaseGetter)
 
--- Ammo
--- if tank is on collectible, collect it
+-- | Ammo
+-- | if tank is on collectible, collect it
 collect :: MaybeT (State Game) ()
 collect = do
   tankGetter <- use tank
@@ -449,19 +449,19 @@ collect = do
     modifying collectible (deleteCollectible collectibleGetter)
     modifying collectible (lastCollectible collectibleGetter)
 
--- increase tank health by 20
+-- | increase tank health by 20
 collectCollectible :: Collectible -> Tank -> Tank
 collectCollectible c t = t & tankHealth %~ (\h -> if h + (c ^. health) > 100 then 100 else h + (c ^. health))
 
--- the last collectible is has 30 additional health
+-- | the last collectible is has 30 additional health
 lastCollectible :: Collectible -> Collectible -> Collectible
 lastCollectible c c' = if c ^. coordinateIndex == 4 then c' & health .~ 50 else c'
 
--- increase collectible index by 1
+-- | increase collectible index by 1
 addCollectible :: Collectible -> Collectible -> Collectible
 addCollectible c c' = c' & coordinateIndex .~ (c ^. coordinateIndex + 1)
 
--- update collectible position according to coordinate list
+-- | update collectible position according to coordinate list
 deleteCollectible :: Collectible -> Collectible -> Collectible
 deleteCollectible c c' =
   if c ^. coordinateIndex > 5
@@ -488,15 +488,15 @@ collectAmmoEnemy = do
     modifying ammo (addAmmo ammoGetter)
     modifying ammo (deleteAmmo ammoGetter)
 
--- increase tank ammo by 5
+-- | increase tank ammo by 5
 collectAmmo :: Ammo -> Tank -> Tank
 collectAmmo a t = t & damageTaken %~ (\h -> h + (a ^. ammoIncrease))
 
--- increase ammo index by 1
+-- | increase ammo index by 1
 addAmmo :: Ammo -> Ammo -> Ammo
 addAmmo a a' = a' & ammoIndex .~ (a ^. ammoIndex + 1)
 
--- update ammo position according to coordinate list
+-- | update ammo position according to coordinate list
 deleteAmmo :: Ammo -> Ammo -> Ammo
 deleteAmmo a a' =
   if a ^. ammoIndex > 5
@@ -504,7 +504,7 @@ deleteAmmo a a' =
     else a' & ammoCoord .~ ((a ^. ammoList) !! (a ^. ammoIndex))
 
 
--- Blink
+-- | Blink
 blinkState :: MaybeT (State Game) ()
 blinkState = do
   tankGetter <- use tank
