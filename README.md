@@ -9,7 +9,7 @@ Jiping Lin A15058075
 
 ## Game
 Tank Battalion is a classic shooter arcade video game in which the 2 players control tanks that defend their own base as well as destroy the other player's tank. The player will lose if either player's tank or base is destroyed by the other player. 
-
+![Tank game](./doc/22.png)
 ### Characters
 The main characters of this game are tanks, where the player has one controllable tank that can move (up, down, left, and right) and fire.
 
@@ -24,7 +24,7 @@ The board consists of the following elements: Walls, Stones, Base, Ammo, Colleti
 6. Collitible can strengthen the player by adding his health.
 7. Bullet can hit the walls, stones, tanks and bases; it can also fly across the lake.
 8. Base is the player’s objective that needs to be defended: when it is hit by bullets for a certain number of times, it is destroyed and the player loses the game; the players can build wall by themselves to defence their base.
-
+![Our game](./doc/15.png)
 ### Win/Lose Condition
 The player will win if the other player's tank or base is destroyed.
 
