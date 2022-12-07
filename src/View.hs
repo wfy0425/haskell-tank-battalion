@@ -137,6 +137,7 @@ drawUI :: Game -> [Widget Name]
 drawUI g = case g ^. gameState of
   GameReady -> drawWelcome g
   GameSelecting -> [C.center $ padRight (Pad 2) (drawGameSelectingIns True) <+> drawGrid g <+> padLeft (Pad 2) (drawGameSelectingIns False)]
+  GameFinished  -> drawFinish g
   _ -> [C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True)]
 
 drawWelcome :: Game -> [Widget Name]
@@ -145,6 +146,13 @@ drawWelcome g = [C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcom
     welcomeText1 = C.hCenter $ hLimit (34 * 2) $ str "Welcome to Tank!"
     welcomeText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
     welcomePaint = hBox (map dummyDraw "t a n k")
+
+drawFinish :: Game -> [Widget Name]
+drawFinish g = [C.center $ vBox [C.hCenter finishPait, padTop (Pad 3) (finishText1 <=> finishText2)]]
+  where
+    finishText1 = C.hCenter $ hLimit (34 * 2) $ str "Game Over!"
+    finishText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
+    finishPait = hBox (map dummyDraw "g a m e   o v e r")
 
 dummyProcess :: [[Int]] -> Widget Name
 dummyProcess grid = vBox $ map f grid
@@ -157,6 +165,12 @@ dummyDraw c = case c of
   'a' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
   'n' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
   'k' -> dummyProcess [[1, 0, 0, 1], [1, 0, 1, 0], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1]]
+  'g' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 0], [1, 0, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
+  'm' -> dummyProcess [[1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
+  'e' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1]]
+  'o' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
+  'r' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 1, 0], [1, 0, 0, 1]]
+  'v' -> dummyProcess [[1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 0]]
   ' ' -> dummyProcess $ replicate 5 [0]
   _ -> dummyProcess $ replicate 5 [1, 1, 1, 1]
 

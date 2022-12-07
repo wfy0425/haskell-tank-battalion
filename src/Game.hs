@@ -302,12 +302,17 @@ launchGame stageData index gameState =
 step :: Game -> Game
 step s = flip execState s . runMaybeT $ do
   guard $ not (s ^. gameOver)
-  collectAmmoTank <|> collectAmmoEnemy <|> hit <|> hitSelfBase <|> hitEnemyBase
+  die <|> collectAmmoTank <|> collectAmmoEnemy <|> hit <|> hitSelfBase <|> hitEnemyBase
     <|> attack
     <|> collect
     <|> blinkState
     <|> MaybeT (Just <$> modify bulletsFly)
 
+die :: MaybeT (State Game) ()
+die = do
+  MaybeT . fmap guard $ isGameOver <$> get
+  MaybeT . fmap Just $ gameOver .= True
+  MaybeT . fmap Just $ gameState .= GameFinished
 -- Tank behaviors
 
 -- | Calculate the next coord of the tank without considering the collision
@@ -321,24 +326,23 @@ nextCoord d c = do
     West -> V2 (x - 1) y
     East -> V2 (x + 1) y
 
+unreachableLocation :: Game -> [Coord]
+unreachableLocation g = g ^. walls ++ g ^. stones ++ g ^. lakes ++ g ^. selfBase ++ g ^. enemyBase
+
 -- | Change the direction of the tank and move if next coord is valid
 moveTank :: Role -> Direction -> Game -> Game
 moveTank SelfRole d g = do
   let c = nextCoord d (g ^. tank . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
-    && (c `notElem` g ^. lakes)
-    && (c /= _tankCoord (_enemy g) && (c `notElem` g ^. selfBase) && (c `notElem` g ^. enemyBase))
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` unreachableLocation g) && (c /= g ^. enemy . tankCoord)
     then g & tank . tankCoord .~ c & tank . tankDirection .~ d
     else g & tank . tankDirection .~ d
 moveTank EnemyRole d g = do
   let c = nextCoord d (g ^. enemy . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
-    && (c `notElem` g ^. lakes)
-    && (c /= _tankCoord (_tank g) && (c `notElem` g ^. selfBase) && (c `notElem` g ^. enemyBase))
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` unreachableLocation g) && (c /= g ^. tank . tankCoord)
     then g & enemy . tankCoord .~ c & enemy . tankDirection .~ d
     else g & enemy . tankDirection .~ d
 
@@ -348,9 +352,7 @@ buildWall SelfRole g@Game {_walls = ws} = do
   let c = nextCoord (g ^. tank . tankDirection) (g ^. tank . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
-    && (c `notElem` g ^. selfBase)
-    && (c `notElem` g ^. enemyBase)
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` unreachableLocation g)
     && (c /= _tankCoord (_tank g))
     && (c /= _tankCoord (_enemy g))
     then g & walls .~ (initWall c : ws)
@@ -359,9 +361,7 @@ buildWall EnemyRole g@Game {_walls = ws} = do
   let c = nextCoord (g ^. enemy . tankDirection) (g ^. enemy . tankCoord)
   let x = c ^. _x
   let y = c ^. _y
-  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` g ^. walls) && (c `notElem` g ^. stones)
-    && (c `notElem` g ^. selfBase)
-    && (c `notElem` g ^. enemyBase)
+  if x >= 0 && x < width && y >= 0 && y < height && (c `notElem` unreachableLocation g)
     && (c /= _tankCoord (_tank g))
     && (c /= _tankCoord (_enemy g))
     then g & walls .~ (initWall c : ws)
@@ -397,6 +397,7 @@ moveCoord d b c = case d of
   South -> c & _y %~ (\y -> if b && y == 0 then y else y - 1)
   West -> c & _x %~ (\x -> if b && x == 0 then x else x - 1)
   East -> c & _x %~ (\x -> if b && x == width - 1 then x else x + 1)
+
 hit :: MaybeT (State Game) ()
 hit = do
   bulletGetter <- use bullets
@@ -524,7 +525,7 @@ delWalls :: [Coord] -> [Coord] -> [Coord]
 delWalls coordsToBeDel ws = filter (\w -> not (w `elem` coordsToBeDel)) ws
 
 reduceBaseHealth :: Coord -> Base -> Tank -> Tank
-reduceBaseHealth coordsToBeDel bs t = if coordsToBeDel `elem` bs then t & baseHealth %~ (\x -> x - (t ^. damageTaken)) else t
+reduceBaseHealth coordsToBeDel bs t = if coordsToBeDel `elem` bs then t & baseHealth .~ (max 0 (t ^. baseHealth - t ^. damageTaken)) else t
 
 attack :: MaybeT (State Game) ()
 attack = do
@@ -546,7 +547,7 @@ attack = do
 hurt :: [Coord] -> Tank -> Tank
 hurt cs t =
   if t ^. tankCoord `elem` cs && t ^. tankHealth > 0
-    then t & tankHealth .~ (t ^. tankHealth - t ^. damageTaken)
+    then t & tankHealth .~ (max (t ^. tankHealth - t ^. damageTaken) 0)
     else t
 
 increaseBlink :: [Coord] -> Tank -> Tank
