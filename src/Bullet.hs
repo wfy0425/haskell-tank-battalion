@@ -21,7 +21,7 @@ data Bullet = Bullet
     _tankDamage :: Int,
     _enemyDamage :: Int
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 makeLenses ''Bullet
 

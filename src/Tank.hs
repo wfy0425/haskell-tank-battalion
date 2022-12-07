@@ -39,6 +39,6 @@ data Tank = Tank
     _tankBlinkCount :: Int,
     _damageTaken :: Int
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 makeLenses ''Tank

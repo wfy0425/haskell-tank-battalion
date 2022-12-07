@@ -57,7 +57,7 @@ makeLenses ''Game
 
 -- Functions
 
--- | Initialize a paused game with random food location
+-- | Initialize the game with stageData
 initGame :: IO Game
 initGame = do
   let stageData =
