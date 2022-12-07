@@ -2,26 +2,34 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Bullet (
-    Bullet(..)
-    ,bulletCoord, bulletDirection, tankDamage, enemyDamage
-    ,initBullet
-) where
+module Bullet
+  ( Bullet (..),
+    bulletCoord,
+    bulletDirection,
+    tankDamage,
+    enemyDamage,
+    initBullet,
+  )
+where
 
+import Control.Lens hiding ((:<), (:>), (<|), (|>))
 import Global
-import Control.Lens hiding ((<|), (|>), (:>), (:<))
 
-
-data Bullet = Bullet {
-  _bulletCoord :: Coord -- bullet origin
-  , _bulletDirection :: Direction
-  , _tankDamage :: Int
-  , _enemyDamage :: Int
-} deriving (Show)
+data Bullet = Bullet
+  { _bulletCoord :: Coord, -- bullet origin
+    _bulletDirection :: Direction,
+    _tankDamage :: Int,
+    _enemyDamage :: Int
+  }
+  deriving (Show)
 
 makeLenses ''Bullet
 
-initBullet :: Coord -> Direction -> Bullet 
-initBullet c d = Bullet { _bulletCoord = c, _bulletDirection = d, 
-                          _tankDamage = 10, _enemyDamage = 10 }
-
+initBullet :: Coord -> Direction -> Bullet
+initBullet c d =
+  Bullet
+    { _bulletCoord = c,
+      _bulletDirection = d,
+      _tankDamage = 10,
+      _enemyDamage = 10
+    }
