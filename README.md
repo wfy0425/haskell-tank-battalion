@@ -26,7 +26,15 @@ The board consists of the following elements: Walls, Stones, Base, Ammo, Colleti
 7. Bullet can hit the walls, stones, tanks and bases; it can also fly across the lake.
 8. Base is the player’s objective that needs to be defended: when it is hit by bullets for a certain number of times, it is destroyed and the player loses the game; the players can build wall by themselves to defence their base.
 
-![Our game](./doc/15.png)
+## Demo
+### Welcome Screen
+![Our game](./doc/welcome_screen.png)
+
+### Stage Selecting
+![Our game](./doc/stage0.png)
+
+![Our game](./doc/stage1.png)
+
 ### Win/Lose Condition
 The player will win if the other player's tank or base is destroyed.
 
