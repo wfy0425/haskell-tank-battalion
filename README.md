@@ -8,7 +8,7 @@ Na Sang A59001972
 Jiping Lin A15058075   
 
 ## Game
-Tank Battalion is a classic shooter arcade video game in which the player controls a tank that defends the player's base as well as destroys all AI-controlling enemy tanks. The player will lose if either player's tank is destroyed by AI or the player's base is destroyed by AI. A round is cleared when the player destroys all AI-controlling enemy tanks.
+Tank Battalion is a classic shooter arcade video game in which the 2 players control tanks that defend their own base as well as destroy the other player's tank. The player will lose if either player's tank or base is destroyed by the other player. 
 
 ### Characters
 The main characters of this game are tanks, where the player has one controllable tank that can move (up, down, left, and right) and fire, and enemies have several other tanks that are automatically controlled by computers. 
@@ -31,3 +31,9 @@ The player will lose under these two circumstances:
 ## Architecture
 This project aims to build a Haskell version of the Tank Battalion. The terminal user interface would be implemented using the brick library.
 ![UML](http://assets.processon.com/chart_image/638ce1cd7d9c082abaa044b7.png)
+
+## Build & Run
+```sh
+stack build
+stack run
+```
