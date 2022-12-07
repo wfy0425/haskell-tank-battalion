@@ -47,3 +47,7 @@ This project aims to build a Haskell version of the Tank Battalion. The terminal
 stack build
 stack run
 ```
+## Test
+```sh
+stack test
+```
