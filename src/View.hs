@@ -115,7 +115,7 @@ handleEvent g (VtyEvent (V.EvKey V.KEnter []))
   | _gameState g == GameReady = continue $ setGameState g GameSelecting
   | _gameState g == GameSelecting = continue $ setGameState g GameRunning
   | _gameState g == GameRunning = continue $ fire SelfRole g
-  | _gameState g == GameFinished = continue $ setGameState g GameSelecting
+  | _gameState g == GameFinished = continue $ changeToIndexWorld 0 g
   | otherwise = continue g
 handleEvent g (VtyEvent (V.EvKey V.KLeft []))
   | _gameState g == GameSelecting =
@@ -169,10 +169,11 @@ drawLogo c = case c of
   _ -> drawLogoPixel $ replicate 5 [1, 1, 1, 1]
 
 drawFinish :: Game -> [Widget Name]
-drawFinish g = [C.center $ vBox [C.hCenter finishPait, padTop (Pad 3) (finishText1 <=> finishText2)]]
+drawFinish g = [C.center $ vBox [C.hCenter finishPait, padTop (Pad 3) (finishText1 <=> finishText2<=> finishText3)]]
   where
     finishText1 = C.hCenter $ hLimit (34 * 2) $ str "Game Over!"
-    finishText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
+    finishText2 = C.hCenter $ hLimit (34 * 2) $ str "Winner: " <+> drawWinner g
+    finishText3 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
     finishPait = hBox (map drawLogo "g a m e   o v e r")
 
 drawGameSelectingIns :: Bool -> Widget Name
@@ -183,7 +184,7 @@ drawGameSelectingIns True =
         str " ",
         str " ",
         str " ",
-        padAll 1 $ vBox [str "Enter: start", str "←: previous", str "→:next", str "Q: return"],
+        padAll 1 $ vBox [str "Enter: start", str "←: previous", str "→: next", str "Q: back"],
         str " "
       ]
 drawGameSelectingIns False =
@@ -201,8 +202,7 @@ drawStats g True =
         str $ "Health: " ++ show (g ^. tank ^. tankHealth),
         str $ "Base: " ++ show (g ^. tank ^. baseHealth),
         str $ "Damage: " ++ show (g ^. enemy ^. damageTaken),
-        drawInstructions True,
-        drawGameOver g
+        drawInstructions True
       ]
 drawStats g False =
   hLimit 20 $
@@ -211,8 +211,7 @@ drawStats g False =
         str $ "Health: " ++ show (g ^. enemy ^. tankHealth),
         str $ "Base: " ++ show (g ^. enemy ^. baseHealth),
         str $ "Damage: " ++ show (g ^. tank ^. damageTaken),
-        drawInstructions False,
-        drawGameOver g
+        drawInstructions False
       ]
 
 drawInstructions :: Bool -> Widget Name
@@ -237,28 +236,16 @@ drawInstructions False =
         str "space: shoot"
       ]
 
-drawGameOver :: Game -> Widget Name
-drawGameOver g
-  | isGameWon g =
-    padAll 1 $
-      vBox
-        [ drawTank SelfRole (_tank g),
-          str "Won!",
-          str "q:quit"
-        ]
-  | isGameLost g =
-    padAll 1 $
-      vBox
-        [ drawTank EnemyRole (_enemy g),
-          str "Won!",
-          str "q:quit"
-        ]
+drawWinner:: Game -> Widget Name
+drawWinner g
+  | isGameWon g = withAttr tankAttr tankNorthSquare
+  | isGameLost g = withAttr enemyAttr tankNorthSquare
   | otherwise = emptyWidget
 
 drawGrid :: Game -> Widget Name
 drawGrid g =
   withBorderStyle BS.unicodeBold $
-    B.borderWithLabel (str $ "Stage: " ++ showN) $
+    B.borderWithLabel (str $ "Map: " ++ showN) $
       vBox rows
   where
     rows = [hBox $ cellsInRow r | r <- [height -1, height -2 .. 0]]
