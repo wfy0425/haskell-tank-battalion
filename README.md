@@ -10,7 +10,7 @@ Jiping Lin A15058075
 ## Game
 Tank Battalion is a classic shooter arcade video game in which the 2 players control tanks that defend their own base as well as destroy the other player's tank. The player will lose if either player's tank or base is destroyed by the other player. 
 
-![Tank game](./doc/bettlecity.png)
+![Tank game](./doc/battlecity.png)
 ### Characters
 The main characters of this game are tanks, where the player has one controllable tank that can move (up, down, left, and right) and fire.
 
