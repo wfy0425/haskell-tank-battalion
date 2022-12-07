@@ -138,7 +138,7 @@ drawUI :: Game -> [Widget Name]
 drawUI g = case g ^. gameState of
   GameReady -> drawWelcome g
   GameSelecting -> [C.center $ padRight (Pad 2) (drawGameSelectingIns True) <+> drawGrid g <+> padLeft (Pad 2) (drawGameSelectingIns False)]
-  GameFinished  -> drawFinish g
+  GameFinished -> drawFinish g
   _ -> [C.center $ padRight (Pad 2) (drawStats g False) <+> drawGrid g <+> padLeft (Pad 2) (drawStats g True)]
 
 drawWelcome :: Game -> [Widget Name]
@@ -169,7 +169,7 @@ drawLogo c = case c of
   _ -> drawLogoPixel $ replicate 5 [1, 1, 1, 1]
 
 drawFinish :: Game -> [Widget Name]
-drawFinish g = [C.center $ vBox [C.hCenter finishPait, padTop (Pad 3) (finishText1 <=> finishText2<=> finishText3)]]
+drawFinish g = [C.center $ vBox [C.hCenter finishPait, padTop (Pad 3) (finishText1 <=> finishText2 <=> finishText3)]]
   where
     finishText1 = C.hCenter $ hLimit (34 * 2) $ str "Game Over!"
     finishText2 = C.hCenter $ hLimit (34 * 2) $ str "Winner: " <+> drawWinner g
@@ -236,7 +236,7 @@ drawInstructions False =
         str "space: shoot"
       ]
 
-drawWinner:: Game -> Widget Name
+drawWinner :: Game -> Widget Name
 drawWinner g
   | isGameWon g = withAttr tankAttr tankNorthSquare
   | isGameLost g = withAttr enemyAttr tankNorthSquare
