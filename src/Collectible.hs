@@ -27,7 +27,7 @@ initCollectible :: Coord -> Int -> Collectible
 initCollectible c x = Collectible {
             _collectibleCoord = c
             , _coordinateList = if x == 0 then [(V2 3 5), (V2 18 13), (V2 6 4), (V2 11 15), (V2 19 19), (V2 0 0)]
-                                          else [(V2 6 14), (V2 10 3), (V2 12 19), (V2 7 0), (V2 13 15), (V2 6 6)]
+                                          else [(V2 6 13), V2 13 6, V2 6 16, V2 13 3, V2 0 0, V2 19 19]
             , _coordinateIndex = 0
             , _health = 20
             }
