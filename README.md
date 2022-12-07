@@ -1,5 +1,6 @@
 # haskell-tank-battalion
 Final Project for UCSD CSE 230 Fall 2022
+![demo](./doc/demo.gif)
 
 ## Group Member
 Fengyuan Wu A15535437  
