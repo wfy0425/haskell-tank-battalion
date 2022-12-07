@@ -115,6 +115,7 @@ handleEvent g (VtyEvent (V.EvKey V.KEnter []))
   | _gameState g == GameReady = continue $ setGameState g GameSelecting
   | _gameState g == GameSelecting = continue $ setGameState g GameRunning
   | _gameState g == GameRunning = continue $ fire SelfRole g
+  | _gameState g == GameFinished = continue $ setGameState g GameSelecting
   | otherwise = continue g
 handleEvent g (VtyEvent (V.EvKey V.KLeft []))
   | _gameState g == GameSelecting =
@@ -159,7 +160,7 @@ drawLogo c = case c of
   'n' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
   'k' -> drawLogoPixel [[1, 0, 0, 1], [1, 0, 1, 0], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1]]
   'g' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 0], [1, 0, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
-  'm' -> drawLogoPixel [[1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
+  'm' -> drawLogoPixel [[1, 1, 1, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
   'e' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1]]
   'o' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
   'r' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 1, 0], [1, 0, 0, 1]]
