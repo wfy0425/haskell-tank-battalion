@@ -260,8 +260,8 @@ theMap = attrMap V.defAttr
   --  (gameOverAttr, V.white `V.withStyle` V.bold)
   (selfBaseAttr, V.brightYellow `on` V.red),
   (enemyBaseAttr, V.brightYellow `on` V.blue),
-  (collectibleAttr, V.black `on` V.yellow),
-  (ammoAttr, V.black `on` V.red),
+  (collectibleAttr, V.black `on` pinkColor),
+  (ammoAttr, V.black `on` greenColor),
   (welcomeCharAttr, V.black `on` welcomeCharColor)
   ]
 
@@ -384,6 +384,12 @@ stoneColor = V.rgbColor 166 166 166 `on` V.rgbColor 128 128 128
 
 lakeColor :: V.Attr
 lakeColor = V.blue `on` V.rgbColor 0 255 255
+
+pinkColor :: V.Color
+pinkColor = V.rgbColor 231 84 128
+
+greenColor :: V.Color
+greenColor = V.rgbColor 2 48 32
 
 drawWelcome :: Game -> [Widget Name]
 drawWelcome g = [ C.center $ vBox [C.hCenter welcomePaint, padTop (Pad 3) (welcomeText1 <=> welcomeText2)] ]
