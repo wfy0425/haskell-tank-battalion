@@ -158,12 +158,12 @@ drawLogo c = case c of
   'a' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
   'n' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
   'k' -> drawLogoPixel [[1, 0, 0, 1], [1, 0, 1, 0], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1]]
-  'g' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 0], [1, 0, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
-  'm' -> dummyProcess [[1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
-  'e' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1]]
-  'o' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
-  'r' -> dummyProcess [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 1, 0], [1, 0, 0, 1]]
-  'v' -> dummyProcess [[1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 0]]
+  'g' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 0], [1, 0, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
+  'm' -> drawLogoPixel [[1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1]]
+  'e' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0], [1, 1, 1, 1]]
+  'o' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1]]
+  'r' -> drawLogoPixel [[1, 1, 1, 1], [1, 0, 0, 1], [1, 1, 1, 1], [1, 0, 1, 0], [1, 0, 0, 1]]
+  'v' -> drawLogoPixel [[1, 0, 0, 1], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 0]]
   ' ' -> drawLogoPixel $ replicate 5 [0]
   _ -> drawLogoPixel $ replicate 5 [1, 1, 1, 1]
 
@@ -172,7 +172,7 @@ drawFinish g = [C.center $ vBox [C.hCenter finishPait, padTop (Pad 3) (finishTex
   where
     finishText1 = C.hCenter $ hLimit (34 * 2) $ str "Game Over!"
     finishText2 = C.hCenter $ hLimit (34 * 2) $ str "Press <enter> for new game | <q> to exit."
-    finishPait = hBox (map dummyDraw "g a m e   o v e r")
+    finishPait = hBox (map drawLogo "g a m e   o v e r")
 
 drawGameSelectingIns :: Bool -> Widget Name
 drawGameSelectingIns True =
